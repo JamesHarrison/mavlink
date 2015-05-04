@@ -17,19 +17,22 @@ import socket
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--mavport", required=True,
-                      help="Mavlink port name")
+                        help="Mavlink port name")
     parser.add_argument("--mavbaud", type=int,
-                      help="Mavlink port baud rate", default=115200)
+                        help="Mavlink port baud rate", default=115200)
     parser.add_argument("--devnum", default=2, type=int,
-                      help="PX4 UART device number (defaults to GPS port)")
-    parser.add_argument("--devbaud", default=38400, type=int,
-                      help="PX4 UART baud rate (defaults to u-Blox GPS baud)")
+                        help="PX4 UART device number (defaults to GPS port)")
+    parser.add_argument(
+        "--devbaud",
+        default=38400,
+        type=int,
+        help="PX4 UART baud rate (defaults to u-Blox GPS baud)")
     parser.add_argument("--tcpport", default=1001, type=int,
-                      help="local TCP port (defaults to %(default)s)")
+                        help="local TCP port (defaults to %(default)s)")
     parser.add_argument("--debug", default=0, type=int,
-                      help="debug level")
+                        help="debug level")
     parser.add_argument("--buffsize", default=128, type=int,
-                      help="buffer size")
+                        help="buffer size")
     args = parser.parse_args()
 
     print("Connecting to MAVLINK...")
@@ -42,7 +45,7 @@ def main():
     listen_sock.listen(1)
 
     print("Waiting for a TCP connection.")
-    print("Use tcp://localhost:%d in u-Center." % args.tcpport)
+    print(("Use tcp://localhost:%d in u-Center." % args.tcpport))
     conn_sock, addr = listen_sock.accept()
     conn_sock.setblocking(0)  # non-blocking mode
     print("TCP connection accepted. Use Ctrl+C to exit.")
@@ -52,7 +55,7 @@ def main():
             data = conn_sock.recv(args.buffsize)
             if data:
                 if args.debug >= 1:
-                    print '>', len(data)
+                    print('>', len(data))
                 mav_serialport.write(data)
         except socket.error:
             pass
@@ -60,7 +63,7 @@ def main():
         data = mav_serialport.read(args.buffsize)
         if data:
             if args.debug >= 1:
-                print '<', len(data)
+                print('<', len(data))
             conn_sock.send(data)
 
 

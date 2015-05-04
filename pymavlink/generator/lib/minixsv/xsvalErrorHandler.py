@@ -40,9 +40,9 @@
 import string
 import os
 
-IGNORE_WARNINGS   = 0
-PRINT_WARNINGS    = 1
-STOP_ON_WARNINGS  = 2
+IGNORE_WARNINGS = 0
+PRINT_WARNINGS = 1
+STOP_ON_WARNINGS = 2
 
 
 ########################################
@@ -52,26 +52,25 @@ STOP_ON_WARNINGS  = 2
 class ErrorHandler:
 
     def __init__(self, errorLimit, warningProc, verbose):
-        self.errorLimit  = errorLimit
+        self.errorLimit = errorLimit
         self.warningProc = warningProc
-        self.verbose     = verbose
-        
+        self.verbose = verbose
+
         self.errorList = []
         self.noOfErrors = 0
         self.warningList = []
         self.infoDict = {}
 
-
     ########################################
     # check if errors have already been reported
 
-    def hasErrors (self):
+    def hasErrors(self):
         return self.errorList != []
 
     ########################################
     # add error to errorList (raise exception only if error limit is reached)
 
-    def addError (self, errstr, element=None, endTag=0):
+    def addError(self, errstr, element=None, endTag=0):
         filePath = ""
         lineNo = 0
         if element:
@@ -80,89 +79,82 @@ class ErrorHandler:
                 lineNo = element.getEndLineNumber()
             else:
                 lineNo = element.getStartLineNumber()
-        self.errorList.append ((filePath, lineNo, "ERROR", "%s" %errstr))
+        self.errorList.append((filePath, lineNo, "ERROR", "%s" % errstr))
         self.noOfErrors += 1
         if self.noOfErrors == self.errorLimit:
-            self._raiseXsvalException ("\nError Limit reached!!")
-
+            self._raiseXsvalException("\nError Limit reached!!")
 
     ########################################
     # add warning to warningList
 
-    def addWarning (self, warnstr, element=None):
+    def addWarning(self, warnstr, element=None):
         filePath = ""
         lineNo = 0
         if element:
             filePath = element.getFilePath()
             lineNo = element.getStartLineNumber()
-        self.warningList.append ((filePath, lineNo, "WARNING", warnstr))
-
+        self.warningList.append((filePath, lineNo, "WARNING", warnstr))
 
     ########################################
     # add info string to errorList
 
-    def addInfo (self, infostr, element=None):
-        self.infoDict.setdefault("INFO: %s" %infostr, 1)
-
+    def addInfo(self, infostr, element=None):
+        self.infoDict.setdefault("INFO: %s" % infostr, 1)
 
     ########################################
     # add error to errorList (if given) and raise exception
 
-    def raiseError (self, errstr, element=None):
-        self.addError (errstr, element)
-        self._raiseXsvalException ()
-
+    def raiseError(self, errstr, element=None):
+        self.addError(errstr, element)
+        self._raiseXsvalException()
 
     ########################################
     # raise exception with complete errorList as exception string
     # (only if errors occurred)
 
-    def flushOutput (self):
+    def flushOutput(self):
         if self.infoDict != {}:
-            print string.join (self.infoDict.keys(), "\n")
+            print(string.join(list(self.infoDict.keys()), "\n"))
             self.infoList = []
 
         if self.warningProc == PRINT_WARNINGS and self.warningList != []:
-            print self._assembleOutputList(self.warningList, sorted=1)
+            print(self._assembleOutputList(self.warningList, sorted=1))
             self.warningList = []
         elif self.warningProc == STOP_ON_WARNINGS:
-            self.errorList.extend (self.warningList)
+            self.errorList.extend(self.warningList)
 
         if self.errorList != []:
-            self._raiseXsvalException ()
-
+            self._raiseXsvalException()
 
     ########################################
     # Private methods
 
-    def _raiseXsvalException (self, additionalInfo=""):
+    def _raiseXsvalException(self, additionalInfo=""):
         output = self._assembleOutputList(self.errorList) + additionalInfo
         self.errorList = self.warningList = []
-        raise XsvalError (output)
+        raise XsvalError(output)
 
-
-    def _assembleOutputList (self, outputList, sorted=0):
+    def _assembleOutputList(self, outputList, sorted=0):
         if sorted:
             outputList.sort()
         outputStrList = []
         for outElement in outputList:
-            outputStrList.append (self._assembleOutString(outElement))
-        return string.join (outputStrList, "\n")
-        
-        
-    def _assembleOutString (self, listElement):
+            outputStrList.append(self._assembleOutString(outElement))
+        return string.join(outputStrList, "\n")
+
+    def _assembleOutString(self, listElement):
         fileStr = ""
         lineStr = ""
         if listElement[0] != "":
             if self.verbose:
-                fileStr = "%s: " %(listElement[0])
+                fileStr = "%s: " % (listElement[0])
             else:
-                fileStr = "%s: " %(os.path.basename(listElement[0]))
+                fileStr = "%s: " % (os.path.basename(listElement[0]))
         if listElement[1] != 0:
-            lineStr = "line %d: " %(listElement[1])
-        return "%s: %s%s%s" %(listElement[2], fileStr, lineStr, listElement[3])
-    
+            lineStr = "line %d: " % (listElement[1])
+        return "%s: %s%s%s" % (
+            listElement[2], fileStr, lineStr, listElement[3])
 
-class XsvalError (StandardError):
+
+class XsvalError (Exception):
     pass
-

@@ -4,22 +4,37 @@
 search a set of log files for a condition
 '''
 
-import sys, time, os
+import sys
+import time
+import os
 
 from pymavlink import mavutil
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("--condition", default=None, help="conditional check on log")
-parser.add_argument("--types", default=None, help="message types to look for (comma separated)")
-parser.add_argument("--stop", action='store_true', help="stop when message type found")
-parser.add_argument("--stopcondition", action='store_true', help="stop when condition met")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="conditional check on log")
+parser.add_argument(
+    "--types",
+    default=None,
+    help="message types to look for (comma separated)")
+parser.add_argument(
+    "--stop",
+    action='store_true',
+    help="stop when message type found")
+parser.add_argument(
+    "--stopcondition",
+    action='store_true',
+    help="stop when condition met")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 
 args = parser.parse_args()
 
+
 def mavsearch(filename):
-    print("Loading %s ..." % filename)
+    print(("Loading %s ..." % filename))
     mlog = mavutil.mavlink_connection(filename)
     if args.types is not None:
         types = args.types.split(',')

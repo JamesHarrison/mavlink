@@ -3,7 +3,8 @@
 compare two MAVLink parameter files
 '''
 
-import sys, os
+import sys
+import os
 
 from pymavlink import mavutil, mavparm
 
@@ -20,4 +21,3 @@ p1 = mavparm.MAVParmDict()
 p2 = mavparm.MAVParmDict()
 p1.load(file2)
 p1.diff(file1)
-

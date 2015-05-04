@@ -4,7 +4,10 @@
 search a set of log files for bad accel values
 '''
 
-import sys, time, os, glob
+import sys
+import time
+import os
+import glob
 import zipfile
 
 from pymavlink import mavutil
@@ -22,14 +25,22 @@ email = 'Craig Elder <craig@3drobotics.com>'
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("--directory", action='append', default=search_dirs, help="directories to search")
+parser.add_argument(
+    "--directory",
+    action='append',
+    default=search_dirs,
+    help="directories to search")
 parser.add_argument("--post-boot", action='store_true', help="post boot only")
 parser.add_argument("--init-only", action='store_true', help="init only")
-parser.add_argument("--single-axis", action='store_true', help="single axis only")
+parser.add_argument(
+    "--single-axis",
+    action='store_true',
+    help="single axis only")
 
 args = parser.parse_args()
 
 logcount = 0
+
 
 def AccelSearch(filename):
     global logcount
@@ -39,7 +50,7 @@ def AccelSearch(filename):
     have_ok = False
     last_t = 0
     while True:
-        m = mlog.recv_match(type=['PARAM_VALUE','RAW_IMU'])
+        m = mlog.recv_match(type=['PARAM_VALUE', 'RAW_IMU'])
         if m is None:
             if last_t != 0:
                 logcount += 1
@@ -52,14 +63,18 @@ def AccelSearch(filename):
             if m.time_usec < last_t:
                 have_ok = False
             last_t = m.time_usec
-            if abs(m.xacc) >= 3000 and abs(m.yacc) > 3000 and abs(m.zacc) > 3000 and not args.single_axis:
+            if abs(
+                    m.xacc) >= 3000 and abs(
+                    m.yacc) > 3000 and abs(
+                    m.zacc) > 3000 and not args.single_axis:
                 if args.post_boot and not have_ok:
                     continue
                 if args.init_only and have_ok:
                     continue
-                print(have_ok, last_t, m)
+                print((have_ok, last_t, m))
                 break
-            # also look for a single axis that stays nearly constant at a large value
+            # also look for a single axis that stays nearly constant at a large
+            # value
             for axes in ['xacc', 'yacc', 'zacc']:
                 value1 = getattr(m, axes)
                 if abs(value1) > 2000:
@@ -75,7 +90,7 @@ def AccelSearch(filename):
                             logcount += 1
                             if args.init_only and have_ok:
                                 continue
-                            print(have_ok, badcount, badval, m)
+                            print((have_ok, badcount, badval, m))
                             return True
                     else:
                         badcount = 1
@@ -99,7 +114,7 @@ for d in directories:
     if not os.path.exists(d):
         continue
     if os.path.isdir(d):
-        print("Searching in %s" % d)
+        print(("Searching in %s" % d))
         for (root, dirs, files) in os.walk(d):
             for f in files:
                 if not f.endswith('.tlog'):
@@ -111,25 +126,26 @@ for d in directories:
 
 for i in range(len(filelist)):
     f = filelist[i]
-    print("Checking %s ... [found=%u logcount=%u i=%u/%u]" % (f, len(found), logcount, i, len(filelist)))
+    print(("Checking %s ... [found=%u logcount=%u i=%u/%u]" %
+           (f, len(found), logcount, i, len(filelist))))
     if AccelSearch(f):
         found.append(f)
 
 
 if len(found) == 0:
     print("No matching files found - all OK!")
-    raw_input('Press enter to close')
+    input('Press enter to close')
     sys.exit(0)
 
-print("Creating zip file %s" % results)
+print(("Creating zip file %s" % results))
 try:
     zip = zipfile.ZipFile(results, 'w')
 except Exception:
-    print("Unable to create zip file %s" % results)
+    print(("Unable to create zip file %s" % results))
     print("Please send matching files manually")
     for f in found:
-        print('MATCHED: %s' % f)
-    raw_input('Press enter to close')
+        print(('MATCHED: %s' % f))
+    input('Press enter to close')
     sys.exit(1)
 
 for f in found:
@@ -137,9 +153,10 @@ for f in found:
 zip.close()
 
 print('==============================================')
-print("Created %s with %u of %u matching logs" % (results, len(found), logcount))
-print("Please send this file to %s" % email)
+print(("Created %s with %u of %u matching logs" %
+       (results, len(found), logcount)))
+print(("Please send this file to %s" % email))
 print('==============================================')
 
-raw_input('Press enter to close')
+input('Press enter to close')
 sys.exit(0)

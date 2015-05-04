@@ -11,10 +11,11 @@ from . import mavparse, mavtemplate
 
 t = mavtemplate.MAVTemplate()
 
+
 def generate_mavlink(directory, xml):
     '''generate MVMavlink header and implementation'''
     f = open(os.path.join(directory, "MVMavlink.h"), mode='w')
-    t.write(f,'''
+    t.write(f, '''
 //
 //  MVMavlink.h
 //  MAVLink communications protocol built from ${basename}.xml
@@ -77,7 +78,7 @@ ${{message_definition_files:#import "MV${name_camel_case}Messages.h"
 ''', xml)
     f.close()
     f = open(os.path.join(directory, "MVMavlink.m"), mode='w')
-    t.write(f,'''
+    t.write(f, '''
 //
 //  MVMavlink.m
 //  MAVLink communications protocol built from ${basename}.xml
@@ -111,6 +112,7 @@ ${{message_definition_files:#import "MV${name_camel_case}Messages.h"
 @end
 ''', xml)
     f.close()
+
 
 def generate_base_message(directory, xml):
     '''Generate base MVMessage header and implementation'''
@@ -227,9 +229,17 @@ ${{message:      @${id} : [MVMessage${name_camel_case} class],
 ''', xml)
     f.close()
 
+
 def generate_message_definitions_h(directory, xml):
     '''generate headerfile containing includes for all messages'''
-    f = open(os.path.join(directory, "MV" + camel_case_from_underscores(xml.basename) + "Messages.h"), mode='w')
+    f = open(
+        os.path.join(
+            directory,
+            "MV" +
+            camel_case_from_underscores(
+                xml.basename) +
+            "Messages.h"),
+        mode='w')
     t.write(f, '''
 //
 //  MV${basename_camel_case}Messages.h
@@ -244,9 +254,15 @@ ${{message:#import "MVMessage${name_camel_case}.h"
 ''', xml)
     f.close()
 
+
 def generate_message(directory, m):
     '''generate per-message header and implementation file'''
-    f = open(os.path.join(directory, 'MVMessage%s.h' % m.name_camel_case), mode='w')
+    f = open(
+        os.path.join(
+            directory,
+            'MVMessage%s.h' %
+            m.name_camel_case),
+        mode='w')
     t.write(f, '''
 //
 //  MVMessage${name_camel_case}.h
@@ -274,7 +290,12 @@ ${{fields://! ${description}
 @end
 ''', m)
     f.close()
-    f = open(os.path.join(directory, 'MVMessage%s.m' % m.name_camel_case), mode='w')
+    f = open(
+        os.path.join(
+            directory,
+            'MVMessage%s.m' %
+            m.name_camel_case),
+        mode='w')
     t.write(f, '''
 //
 //  MVMessage${name_camel_case}.m
@@ -308,6 +329,7 @@ ${{fields:- (${return_type})${name_lower_camel_case}${get_arg_objc} {
 ''', m)
     f.close()
 
+
 def camel_case_from_underscores(string):
     """generate a CamelCase string from an underscore_string."""
     components = string.split('_')
@@ -315,6 +337,7 @@ def camel_case_from_underscores(string):
     for component in components:
         string += component[0].upper() + component[1:]
     return string
+
 
 def lower_camel_case_from_underscores(string):
     """generate a lower-cased camelCase string from an underscore_string.
@@ -325,41 +348,50 @@ def lower_camel_case_from_underscores(string):
         string += component[0].upper() + component[1:]
     return string
 
+
 def generate_shared(basename, xml_list):
-    # Create a dictionary to hold all the values we want to use in the templates
+    # Create a dictionary to hold all the values we want to use in the
+    # templates
     template_dict = {}
     template_dict['parse_time'] = xml_list[0].parse_time
     template_dict['message'] = []
     template_dict['message_definition_files'] = []
 
-    print("Generating Objective-C implementation in directory %s" % basename)
+    print(("Generating Objective-C implementation in directory %s" % basename))
     mavparse.mkdir_p(basename)
 
     for xml in xml_list:
         template_dict['message'].extend(xml.message)
         basename_camel_case = camel_case_from_underscores(xml.basename)
-        template_dict['message_definition_files'].append({'name_camel_case': basename_camel_case})
+        template_dict['message_definition_files'].append(
+            {'name_camel_case': basename_camel_case})
         if not template_dict.get('basename', None):
             template_dict['basename'] = xml.basename
         else:
-            template_dict['basename'] = template_dict['basename'] + ', ' + xml.basename
+            template_dict['basename'] = template_dict[
+                'basename'] + ', ' + xml.basename
 
     # Sort messages by ID
-    template_dict['message'] = sorted(template_dict['message'], key = lambda message : message.id)
+    template_dict['message'] = sorted(
+        template_dict['message'],
+        key=lambda message: message.id)
 
-    # Add name_camel_case to each message object 
+    # Add name_camel_case to each message object
     for message in template_dict['message']:
-        message.name_camel_case = camel_case_from_underscores(message.name_lower)
+        message.name_camel_case = camel_case_from_underscores(
+            message.name_lower)
 
     generate_mavlink(basename, template_dict)
     generate_base_message(basename, template_dict)
+
 
 def generate_message_definitions(basename, xml):
     '''generate files for one XML file'''
 
     directory = os.path.join(basename, xml.basename)
 
-    print("Generating Objective-C implementation in directory %s" % directory)
+    print(
+        ("Generating Objective-C implementation in directory %s" % directory))
     mavparse.mkdir_p(directory)
 
     xml.basename_camel_case = camel_case_from_underscores(xml.basename)
@@ -370,7 +402,7 @@ def generate_message_definitions(basename, xml):
         m.parse_time = xml.parse_time
         m.name_camel_case = camel_case_from_underscores(m.name_lower)
         for f in m.fields:
-            f.name_lower_camel_case = lower_camel_case_from_underscores(f.name);
+            f.name_lower_camel_case = lower_camel_case_from_underscores(f.name)
             f.get_message = "[self %s]" % f.name_lower_camel_case
             f.return_method_implementation = ''
             f.array_prefix = ''
@@ -395,34 +427,38 @@ def generate_message_definitions(basename, xml):
                 elif f.type.startswith('char'):
                     f.print_format = "%c"
                 else:
-                    print("print_format unsupported for type %s" % f.type)
+                    print(("print_format unsupported for type %s" % f.type))
             if f.array_length != 0:
-                f.get_message = '@"[array of %s[%d]]"' % (f.type, f.array_length)
+                f.get_message = '@"[array of %s[%d]]"' % (
+                    f.type, f.array_length)
                 f.array_prefix = ' *'
                 f.array_return_arg = '%s, %u, ' % (f.name, f.array_length)
                 f.return_type = 'uint16_t'
                 f.get_arg = ', %s' % (f.name)
                 f.get_arg_objc = ':(%s *)%s' % (f.type, f.name)
                 if f.type == 'char':
-                    # Special handling for strings (assumes all char arrays are strings)
+                    # Special handling for strings (assumes all char arrays are
+                    # strings)
                     f.return_type = 'NSString *'
                     f.get_arg_objc = ''
                     f.get_message = "[self %s]" % f.name_lower_camel_case
                     f.return_method_implementation = \
-"""char string[%(array_length)d];
+                        """char string[%(array_length)d];
   mavlink_msg_%(message_name_lower)s_get_%(name)s(&(self->_message), (char *)&string);
   return [[NSString alloc] initWithBytes:string length:%(array_length)d encoding:NSASCIIStringEncoding];""" % {'array_length': f.array_length, 'message_name_lower': m.name_lower, 'name': f.name}
 
             if not f.return_method_implementation:
-                f.return_method_implementation = \
-"""return mavlink_msg_%(message_name_lower)s_get_%(name)s(&(self->_message)%(get_arg)s);""" % {'message_name_lower': m.name_lower, 'name': f.name, 'get_arg': f.get_arg}
+                f.return_method_implementation = """return mavlink_msg_%(message_name_lower)s_get_%(name)s(&(self->_message)%(get_arg)s);""" % {
+                    'message_name_lower': m.name_lower,
+                    'name': f.name,
+                    'get_arg': f.get_arg}
 
     for m in xml.message:
         m.arg_fields = []
         for f in m.fields:
             if not f.omit_arg:
                 m.arg_fields.append(f)
- 
+
     generate_message_definitions_h(directory, xml)
     for m in xml.message:
         generate_message(directory, m)

@@ -5,7 +5,7 @@
 Unit tests for the quaternion library
 """
 
-from __future__ import absolute_import, division, print_function
+
 import unittest
 import numpy as np
 from pymavlink.quaternion import QuaternionBase, Quaternion
@@ -136,7 +136,7 @@ class QuaternionBaseTest(unittest.TestCase):
         """
         e = 0.5
         r_phi = np.arange(-np.pi + e, np.pi - e, step)
-        r_theta = np.arange(-np.pi/2 + e, np.pi/2 - e, step)
+        r_theta = np.arange(-np.pi / 2 + e, np.pi / 2 - e, step)
         r_psi = np.arange(-np.pi + e, np.pi - e, step)
         return [[phi, theta, psi] for phi in r_phi for theta in r_theta
                 for psi in r_psi]
@@ -202,6 +202,7 @@ class QuaternionBaseTest(unittest.TestCase):
 
 
 class QuaternionTest(QuaternionBaseTest):
+
     """
     Class to test Quaternion
     """

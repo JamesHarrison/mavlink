@@ -7,11 +7,16 @@ Copyright Andrew Tridgell 2011
 Released under GNU GPL version 3 or later
 
 '''
-import sys, textwrap, os
+import sys
+import textwrap
+import os
 from . import mavparse
 
 # XSD schema file
-schemaFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mavschema.xsd")
+schemaFile = os.path.join(
+    os.path.dirname(
+        os.path.realpath(__file__)),
+    "mavschema.xsd")
 
 # Set defaults for generating MAVLink code
 DEFAULT_WIRE_PROTOCOL = mavparse.PROTOCOL_1_0
@@ -19,11 +24,19 @@ DEFAULT_LANGUAGE = 'Python'
 DEFAULT_ERROR_LIMIT = 200
 DEFAULT_VALIDATE = True
 
-# List the supported languages. This is done globally because it's used by the GUI wrapper too
-supportedLanguages = ["C", "CS", "JavaScript", "Python", "WLua", "ObjC", "Java"]
+# List the supported languages. This is done globally because it's used by
+# the GUI wrapper too
+supportedLanguages = [
+    "C",
+    "CS",
+    "JavaScript",
+    "Python",
+    "WLua",
+    "ObjC",
+    "Java"]
 
 
-def mavgen(opts, args) :
+def mavgen(opts, args):
     """Generate mavlink message formatters and parsers (C and Python ) using options
     and args where args are a list of xml files. This function allows python
     scripts under Windows to control mavgen using the same interface as
@@ -34,27 +47,32 @@ def mavgen(opts, args) :
     # Enable validation by default, disabling it if explicitly requested
     if opts.validate:
         try:
-            from lib.genxmlif import GenXmlIfError
-            from lib.minixsv import pyxsval
+            from .lib.genxmlif import GenXmlIfError
+            from .lib.minixsv import pyxsval
         except:
-            print("WARNING: Unable to load XML validator libraries. XML validation will not be performed")
+            print(
+                "WARNING: Unable to load XML validator libraries. XML validation will not be performed")
             opts.validate = False
 
-    def mavgen_validate(fname, schema, errorLimitNumber) :
+    def mavgen_validate(fname, schema, errorLimitNumber):
         """Uses minixsv to validate an XML file with a given XSD schema file. We define mavgen_validate
            here because it relies on the XML libs that were loaded in mavgen(), so it can't be called standalone"""
-        # use default values of minixsv, location of the schema file must be specified in the XML file
-        domTreeWrapper = pyxsval.parseAndValidate(fname, xsdFile=schema, errorLimit=errorLimitNumber)
+        # use default values of minixsv, location of the schema file must be
+        # specified in the XML file
+        domTreeWrapper = pyxsval.parseAndValidate(
+            fname,
+            xsdFile=schema,
+            errorLimit=errorLimitNumber)
 
     # Process all XML files, validating them as necessary.
     for fname in args:
         if opts.validate:
-            print("Validating %s" % fname)
-            mavgen_validate(fname, schemaFile, opts.error_limit);
+            print(("Validating %s" % fname))
+            mavgen_validate(fname, schemaFile, opts.error_limit)
         else:
-            print("Validation skipped for %s." % fname)
+            print(("Validation skipped for %s." % fname))
 
-        print("Parsing %s" % fname)
+        print(("Parsing %s" % fname))
         xml.append(mavparse.MAVXML(fname, opts.wire_protocol))
 
     # expand includes
@@ -62,15 +80,15 @@ def mavgen(opts, args) :
         for i in x.include:
             fname = os.path.join(os.path.dirname(x.filename), i)
 
-            ## Validate XML file with XSD file if possible.
+            # Validate XML file with XSD file if possible.
             if opts.validate:
-                print("Validating %s" % fname)
-                mavgen_validate(fname, schemaFile, opts.error_limit);
+                print(("Validating %s" % fname))
+                mavgen_validate(fname, schemaFile, opts.error_limit)
             else:
-                print("Validation skipped for %s." % fname)
+                print(("Validation skipped for %s." % fname))
 
-            ## Parsing
-            print("Parsing %s" % fname)
+            # Parsing
+            print(("Parsing %s" % fname))
             xml.append(mavparse.MAVXML(fname, opts.wire_protocol))
 
             # include message lengths and CRCs too
@@ -91,8 +109,8 @@ def mavgen(opts, args) :
     if mavparse.check_duplicates(xml):
         sys.exit(1)
 
-    print("Found %u MAVLink message types in %u XML files" % (
-        mavparse.total_msgs(xml), len(xml)))
+    print(("Found %u MAVLink message types in %u XML files" % (
+        mavparse.total_msgs(xml), len(xml))))
 
     # Convert language option to lowercase and validate
     opts.language = opts.language.lower()
@@ -118,22 +136,39 @@ def mavgen(opts, args) :
         from . import mavgen_java
         mavgen_java.generate(opts.output, xml)
     else:
-        print("Unsupported language %s" % opts.language)
+        print(("Unsupported language %s" % opts.language))
 
 
 # build all the dialects in the dialects subpackage
 class Opts:
-    def __init__(self, output, wire_protocol=DEFAULT_WIRE_PROTOCOL, language=DEFAULT_LANGUAGE, validate=DEFAULT_VALIDATE, error_limit=DEFAULT_ERROR_LIMIT):
+
+    def __init__(
+            self,
+            output,
+            wire_protocol=DEFAULT_WIRE_PROTOCOL,
+            language=DEFAULT_LANGUAGE,
+            validate=DEFAULT_VALIDATE,
+            error_limit=DEFAULT_ERROR_LIMIT):
         self.wire_protocol = wire_protocol
         self.error_limit = error_limit
         self.language = language
         self.output = output
         self.validate = validate
 
+
 def mavgen_python_dialect(dialect, wire_protocol):
     '''generate the python code on the fly for a MAVLink dialect'''
-    dialects = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'dialects')
-    mdef = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'message_definitions')
+    dialects = os.path.join(
+        os.path.dirname(
+            os.path.realpath(__file__)),
+        '..',
+        'dialects')
+    mdef = os.path.join(
+        os.path.dirname(
+            os.path.realpath(__file__)),
+        '..',
+        '..',
+        'message_definitions')
     if wire_protocol == mavparse.PROTOCOL_0_9:
         py = os.path.join(dialects, 'v09', dialect + '.py')
         xml = os.path.join(dialects, 'v09', dialect + '.xml')
@@ -146,9 +181,9 @@ def mavgen_python_dialect(dialect, wire_protocol):
             xml = os.path.join(mdef, 'v1.0', dialect + '.xml')
     opts = Opts(py, wire_protocol)
 
-     # Python 2 to 3 compatibility
+    # Python 2 to 3 compatibility
     try:
-        import StringIO as io
+        import io as io
     except ImportError:
         import io
 
@@ -157,7 +192,7 @@ def mavgen_python_dialect(dialect, wire_protocol):
     sys.stdout = io.StringIO()
     try:
         xml = os.path.relpath(xml)
-        mavgen( opts, [xml] )
+        mavgen(opts, [xml])
     except Exception:
         sys.stdout = stdout_saved
         raise

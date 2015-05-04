@@ -4,8 +4,13 @@ graph a MAVLink log file
 Andrew Tridgell August 2011
 '''
 
-import sys, struct, time, os, datetime
-import math, re
+import sys
+import struct
+import time
+import os
+import datetime
+import math
+import re
 import matplotlib
 from math import *
 
@@ -18,47 +23,49 @@ except NameError:
     pass
 
 colourmap = {
-    'apm' : {
-        'MANUAL'    : (1.0,   0,   0),
-        'AUTO'      : (  0, 1.0,   0),
-        'LOITER'    : (  0,   0, 1.0),
-        'FBWA'      : (1.0, 0.5,   0),
-        'RTL'       : (  1,   0, 0.5),
-        'STABILIZE' : (0.5, 1.0,   0),
-        'LAND'      : (  0, 1.0, 0.5),
-        'STEERING'  : (0.5,   0, 1.0),
-        'HOLD'      : (  0, 0.5, 1.0),
-        'ALT_HOLD'  : (1.0, 0.5, 0.5),
-        'CIRCLE'    : (0.5, 1.0, 0.5),
-        'POSITION'  : (1.0, 0.0, 1.0),
-        'GUIDED'    : (0.5, 0.5, 1.0),
-        'ACRO'      : (1.0, 1.0,   0),
-        'CRUISE'    : (  0, 1.0, 1.0)
-        },
-    'px4' : {
-        'MANUAL'    : (1.0,   0,   0),
-        'SEATBELT'  : (  0.5, 0.5,   0),
-        'EASY'      : (  0, 1.0,   0),
-        'AUTO'    : (  0,   0, 1.0),
-        'UNKNOWN'    : (  1.0,   1.0, 1.0)
-        }
+    'apm': {
+        'MANUAL': (1.0, 0, 0),
+        'AUTO': (0, 1.0, 0),
+        'LOITER': (0, 0, 1.0),
+        'FBWA': (1.0, 0.5, 0),
+        'RTL': (1, 0, 0.5),
+        'STABILIZE': (0.5, 1.0, 0),
+        'LAND': (0, 1.0, 0.5),
+        'STEERING': (0.5, 0, 1.0),
+        'HOLD': (0, 0.5, 1.0),
+        'ALT_HOLD': (1.0, 0.5, 0.5),
+        'CIRCLE': (0.5, 1.0, 0.5),
+        'POSITION': (1.0, 0.0, 1.0),
+        'GUIDED': (0.5, 0.5, 1.0),
+        'ACRO': (1.0, 1.0, 0),
+        'CRUISE': (0, 1.0, 1.0)
+    },
+    'px4': {
+        'MANUAL': (1.0, 0, 0),
+        'SEATBELT': (0.5, 0.5, 0),
+        'EASY': (0, 1.0, 0),
+        'AUTO': (0, 0, 1.0),
+        'UNKNOWN': (1.0, 1.0, 1.0)
     }
+}
 
 edge_colour = (0.1, 0.1, 0.1)
 
 lowest_x = None
 highest_x = None
 
+
 def plotit(x, y, fields, colors=[]):
     '''plot a set of graphs using date for x axis'''
     global lowest_x, highest_x
     pylab.ion()
-    fig = pylab.figure(num=1, figsize=(12,6))
+    fig = pylab.figure(num=1, figsize=(12, 6))
     ax1 = fig.gca()
     ax2 = None
     xrange = 0.0
     for i in range(0, len(fields)):
-        if len(x[i]) == 0: continue
+        if len(x[i]) == 0:
+            continue
         if lowest_x is None or x[i][0] < lowest_x:
             lowest_x = x[i][0]
         if highest_x is None or x[i][-1] > highest_x:
@@ -69,8 +76,8 @@ def plotit(x, y, fields, colors=[]):
     xrange *= 24 * 60 * 60
     formatter = matplotlib.dates.DateFormatter('%H:%M:%S')
     interval = 1
-    intervals = [ 1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600,
-                  900, 1800, 3600, 7200, 5*3600, 10*3600, 24*3600 ]
+    intervals = [1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600,
+                 900, 1800, 3600, 7200, 5 * 3600, 10 * 3600, 24 * 3600]
     for interval in intervals:
         if xrange / interval < 15:
             break
@@ -83,7 +90,7 @@ def plotit(x, y, fields, colors=[]):
     ax2_labels = []
     for i in range(0, len(fields)):
         if len(x[i]) == 0:
-            print("Failed to find any values for field %s" % fields[i])
+            print(("Failed to find any values for field %s" % fields[i]))
             continue
         if i < len(colors):
             color = colors[i]
@@ -91,7 +98,7 @@ def plotit(x, y, fields, colors=[]):
             color = 'red'
         (tz, tzdst) = time.tzname
         if axes[i] == 2:
-            if ax2 == None:
+            if ax2 is None:
                 ax2 = ax1.twinx()
             ax = ax2
             if not args.xaxis:
@@ -128,15 +135,25 @@ def plotit(x, y, fields, colors=[]):
                          linestyle=linestyle, marker=marker, tz=None)
         empty = False
     if args.flightmode is not None:
-        for i in range(len(modes)-1):
+        for i in range(len(modes) - 1):
             c = colourmap[args.flightmode].get(modes[i][1], edge_colour)
-            ax1.axvspan(modes[i][0], modes[i+1][0], fc=c, ec=edge_colour, alpha=0.1)
+            ax1.axvspan(
+                modes[i][0],
+                modes[
+                    i + 1][0],
+                fc=c,
+                ec=edge_colour,
+                alpha=0.1)
         c = colourmap[args.flightmode].get(modes[-1][1], edge_colour)
-        ax1.axvspan(modes[-1][0], ax1.get_xlim()[1], fc=c, ec=edge_colour, alpha=0.1)
+        ax1.axvspan(modes[-1][0],
+                    ax1.get_xlim()[1],
+                    fc=c,
+                    ec=edge_colour,
+                    alpha=0.1)
     if ax1_labels != []:
-        ax1.legend(ax1_labels,loc=args.legend)
+        ax1.legend(ax1_labels, loc=args.legend)
     if ax2_labels != []:
-        ax2.legend(ax2_labels,loc=args.legend2)
+        ax2.legend(ax2_labels, loc=args.legend2)
     if empty:
         print("No data to graph")
         return
@@ -145,20 +162,50 @@ def plotit(x, y, fields, colors=[]):
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("--no-timestamps", dest="notimestamps", action='store_true', help="Log doesn't have timestamps")
-parser.add_argument("--planner", action='store_true', help="use planner file format")
-parser.add_argument("--condition", default=None, help="select packets by a condition")
-parser.add_argument("--labels", default=None, help="comma separated field labels")
-parser.add_argument("--legend", default='upper left', help="default legend position")
-parser.add_argument("--legend2", default='upper right', help="default legend2 position")
+parser.add_argument(
+    "--no-timestamps",
+    dest="notimestamps",
+    action='store_true',
+    help="Log doesn't have timestamps")
+parser.add_argument(
+    "--planner",
+    action='store_true',
+    help="use planner file format")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="select packets by a condition")
+parser.add_argument(
+    "--labels",
+    default=None,
+    help="comma separated field labels")
+parser.add_argument(
+    "--legend",
+    default='upper left',
+    help="default legend position")
+parser.add_argument(
+    "--legend2",
+    default='upper right',
+    help="default legend2 position")
 parser.add_argument("--marker", default=None, help="point marker")
 parser.add_argument("--linestyle", default=None, help="line style")
 parser.add_argument("--xaxis", default=None, help="X axis expression")
-parser.add_argument("--multi", action='store_true', help="multiple files with same colours")
-parser.add_argument("--zero-time-base", action='store_true', help="use Z time base for DF logs")
-parser.add_argument("--flightmode", default=None,
-                    help="Choose the plot background according to the active flight mode of the specified type, e.g. --flightmode=apm for ArduPilot or --flightmode=px4 for PX4 stack logs.  Cannot be specified with --xaxis.")
-parser.add_argument("--dialect", default="ardupilotmega", help="MAVLink dialect")
+parser.add_argument(
+    "--multi",
+    action='store_true',
+    help="multiple files with same colours")
+parser.add_argument(
+    "--zero-time-base",
+    action='store_true',
+    help="use Z time base for DF logs")
+parser.add_argument(
+    "--flightmode",
+    default=None,
+    help="Choose the plot background according to the active flight mode of the specified type, e.g. --flightmode=apm for ArduPilot or --flightmode=px4 for PX4 stack logs.  Cannot be specified with --xaxis.")
+parser.add_argument(
+    "--dialect",
+    default="ardupilotmega",
+    help="MAVLink dialect")
 parser.add_argument("--output", default=None, help="provide an output format")
 parser.add_argument("logs_fields", metavar="<LOG or FIELD>", nargs="+")
 args = parser.parse_args()
@@ -170,7 +217,8 @@ if args.flightmode is not None and args.xaxis:
     sys.exit(1)
 
 if args.flightmode is not None and args.flightmode not in colourmap:
-    print("Unknown flight controller '%s' in specification of --flightmode" % args.flightmode)
+    print(("Unknown flight controller '%s' in specification of --flightmode" %
+           args.flightmode))
     sys.exit(1)
 
 
@@ -190,7 +238,21 @@ msg_types = set()
 multiplier = []
 field_types = []
 
-colors = [ 'red', 'green', 'blue', 'orange', 'olive', 'black', 'grey', 'yellow', 'brown', 'darkcyan', 'cornflowerblue', 'darkmagenta', 'deeppink', 'darkred']
+colors = [
+    'red',
+    'green',
+    'blue',
+    'orange',
+    'olive',
+    'black',
+    'grey',
+    'yellow',
+    'brown',
+    'darkcyan',
+    'cornflowerblue',
+    'darkmagenta',
+    'deeppink',
+    'darkred']
 
 # work out msg types we are interested in
 x = []
@@ -208,10 +270,12 @@ for f in fields:
     axes.append(1)
     first_only.append(False)
 
+
 def add_data(t, msg, vars, flightmode):
     '''add some data'''
     mtype = msg.get_type()
-    if args.flightmode is not None and (len(modes) == 0 or modes[-1][1] != flightmode):
+    if args.flightmode is not None and (
+            len(modes) == 0 or modes[-1][1] != flightmode):
         modes.append((t, flightmode))
     if mtype not in msg_types:
         return
@@ -237,16 +301,24 @@ def add_data(t, msg, vars, flightmode):
         y[i].append(v)
         x[i].append(xv)
 
+
 def process_file(filename):
     '''process one file'''
-    print("Processing %s" % filename)
-    mlog = mavutil.mavlink_connection(filename, notimestamps=args.notimestamps, zero_time_base=args.zero_time_base, dialect=args.dialect)
+    print(("Processing %s" % filename))
+    mlog = mavutil.mavlink_connection(
+        filename,
+        notimestamps=args.notimestamps,
+        zero_time_base=args.zero_time_base,
+        dialect=args.dialect)
     vars = {}
 
     while True:
         msg = mlog.recv_match(args.condition)
-        if msg is None: break
-        tdays = matplotlib.dates.date2num(datetime.datetime.fromtimestamp(msg._timestamp))
+        if msg is None:
+            break
+        tdays = matplotlib.dates.date2num(
+            datetime.datetime.fromtimestamp(
+                msg._timestamp))
         add_data(tdays, msg, mlog.messages, mlog.flightmode)
 
 if len(filenames) == 0:
@@ -255,9 +327,9 @@ if len(filenames) == 0:
 
 if args.labels is not None:
     labels = args.labels.split(',')
-    if len(labels) != len(fields)*len(filenames):
-        print("Number of labels (%u) must match number of fields (%u)" % (
-            len(labels), len(fields)*len(filenames)))
+    if len(labels) != len(fields) * len(filenames):
+        print(("Number of labels (%u) must match number of fields (%u)" % (
+            len(labels), len(fields) * len(filenames))))
         sys.exit(1)
 else:
     labels = None
@@ -270,13 +342,13 @@ for fi in range(0, len(filenames)):
             x[i] = []
             y[i] = []
     if labels:
-        lab = labels[fi*len(fields):(fi+1)*len(fields)]
+        lab = labels[fi * len(fields):(fi + 1) * len(fields)]
     else:
         lab = fields[:]
     if args.multi:
         col = colors[:]
     else:
-        col = colors[fi*len(fields):]
+        col = colors[fi * len(fields):]
     plotit(x, y, lab, colors=col)
     for i in range(0, len(x)):
         x[i] = []
@@ -284,7 +356,7 @@ for fi in range(0, len(filenames)):
 if args.output is None:
     pylab.show()
     pylab.draw()
-    input('press enter to exit....')
+    eval(input('press enter to exit....'))
 else:
-    pylab.legend(loc=2,prop={'size':8})
+    pylab.legend(loc=2, prop={'size': 8})
     pylab.savefig(args.output, bbox_inches='tight', dpi=200)

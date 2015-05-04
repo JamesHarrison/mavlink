@@ -6,15 +6,19 @@ Copyright Andrew Tridgell 2011
 Released under GNU GPL version 3 or later
 '''
 
-import sys, textwrap, os, time
+import sys
+import textwrap
+import os
+import time
 from . import mavparse, mavtemplate
 
 t = mavtemplate.MAVTemplate()
 
+
 def generate_version_h(directory, xml):
     '''generate version.h'''
     f = open(os.path.join(directory, "version.h"), mode='w')
-    t.write(f,'''
+    t.write(f, '''
 /** @file
  *	@brief MAVLink comm protocol built from ${basename}.xml
  *	@see http://mavlink.org
@@ -25,15 +29,16 @@ def generate_version_h(directory, xml):
 #define MAVLINK_BUILD_DATE "${parse_time}"
 #define MAVLINK_WIRE_PROTOCOL_VERSION "${wire_protocol_version}"
 #define MAVLINK_MAX_DIALECT_PAYLOAD_SIZE ${largest_payload}
- 
+
 #endif // MAVLINK_VERSION_H
 ''', xml)
     f.close()
 
+
 def generate_mavlink_h(directory, xml):
     '''generate mavlink.h'''
     f = open(os.path.join(directory, "mavlink.h"), mode='w')
-    t.write(f,'''
+    t.write(f, '''
 /** @file
  *	@brief MAVLink comm protocol built from ${basename}.xml
  *	@see http://mavlink.org
@@ -63,6 +68,7 @@ def generate_mavlink_h(directory, xml):
 #endif // MAVLINK_H
 ''', xml)
     f.close()
+
 
 def generate_main_h(directory, xml):
     '''generate main header per XML file'''
@@ -140,11 +146,16 @@ ${{message:#include "./mavlink_msg_${name_lower}.h"
 ''', xml)
 
     f.close()
-             
+
 
 def generate_message_h(directory, m):
     '''generate per-message header for a XML file'''
-    f = open(os.path.join(directory, 'mavlink_msg_%s.h' % m.name_lower), mode='w')
+    f = open(
+        os.path.join(
+            directory,
+            'mavlink_msg_%s.h' %
+            m.name_lower),
+        mode='w')
     t.write(f, '''
 // MESSAGE ${name} PACKING
 
@@ -452,7 +463,7 @@ static void mavlink_test_${name_lower}(uint8_t system_id, uint8_t component_id, 
         }
 	mavlink_msg_${name_lower}_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-        
+
         memset(&packet2, 0, sizeof(packet2));
 	mavlink_msg_${name_lower}_send(MAVLINK_COMM_1 ${{arg_fields:, packet1.${name} }});
 	mavlink_msg_${name_lower}_decode(last_msg, &packet2);
@@ -474,31 +485,44 @@ ${{message:	mavlink_test_${name_lower}(system_id, component_id, last_msg);
 
     f.close()
 
+
 def copy_fixed_headers(directory, xml):
     '''copy the fixed protocol headers to the target directory'''
     import shutil
-    hlist = [ 'protocol.h', 'mavlink_helpers.h', 'mavlink_types.h', 'checksum.h', 'mavlink_conversions.h' ]
+    hlist = [
+        'protocol.h',
+        'mavlink_helpers.h',
+        'mavlink_types.h',
+        'checksum.h',
+        'mavlink_conversions.h']
     basepath = os.path.dirname(os.path.realpath(__file__))
-    srcpath = os.path.join(basepath, 'C/include_v%s' % xml.wire_protocol_version)
+    srcpath = os.path.join(
+        basepath,
+        'C/include_v%s' %
+        xml.wire_protocol_version)
     print("Copying fixed headers")
     for h in hlist:
-        if (not ((h == 'mavlink_conversions.h') and xml.wire_protocol_version == '0.9')):
-           src = os.path.realpath(os.path.join(srcpath, h))
-           dest = os.path.realpath(os.path.join(directory, h))
-           if src == dest:
-               continue
-           shutil.copy(src, dest)
+        if (not ((h == 'mavlink_conversions.h')
+                 and xml.wire_protocol_version == '0.9')):
+            src = os.path.realpath(os.path.join(srcpath, h))
+            dest = os.path.realpath(os.path.join(directory, h))
+            if src == dest:
+                continue
+            shutil.copy(src, dest)
+
 
 class mav_include(object):
+
     def __init__(self, base):
         self.base = base
+
 
 def generate_one(basename, xml):
     '''generate headers for one XML file'''
 
     directory = os.path.join(basename, xml.basename)
 
-    print("Generating C implementation in directory %s" % directory)
+    print(("Generating C implementation in directory %s" % directory))
     mavparse.mkdir_p(directory)
 
     if xml.little_endian:
@@ -590,9 +614,9 @@ def generate_one(basename, xml):
                 if f.type == 'char':
                     f.c_test_value = "'%s'" % f.test_value
                 elif f.type == 'uint64_t':
-                    f.c_test_value = "%sULL" % f.test_value                    
+                    f.c_test_value = "%sULL" % f.test_value
                 elif f.type == 'int64_t':
-                    f.c_test_value = "%sLL" % f.test_value                    
+                    f.c_test_value = "%sLL" % f.test_value
                 else:
                     f.c_test_value = f.test_value
 

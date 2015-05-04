@@ -4,14 +4,27 @@
 extract one mode type from a log
 '''
 
-import sys, time, os, struct
+import sys
+import time
+import os
+import struct
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("--no-timestamps", dest="notimestamps", action='store_true', help="Log doesn't have timestamps")
-parser.add_argument("--robust", action='store_true', help="Enable robust parsing (skip over bad data)")
-parser.add_argument("--condition", default=None, help="select packets by condition")
+parser.add_argument(
+    "--no-timestamps",
+    dest="notimestamps",
+    action='store_true',
+    help="Log doesn't have timestamps")
+parser.add_argument(
+    "--robust",
+    action='store_true',
+    help="Enable robust parsing (skip over bad data)")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="select packets by condition")
 parser.add_argument("--mode", default='auto', help="mode to extract")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 args = parser.parse_args()
@@ -21,10 +34,9 @@ from pymavlink import mavutil
 
 def process(filename):
     '''process one logfile'''
-    print("Processing %s" % filename)
+    print(("Processing %s" % filename))
     mlog = mavutil.mavlink_connection(filename, notimestamps=args.notimestamps,
                                       robust_parsing=args.robust)
-
 
     ext = os.path.splitext(filename)[1]
     isbin = ext in ['.bin', '.BIN']
@@ -46,20 +58,24 @@ def process(filename):
             break
         if (isbin or islog) and m.get_type() in ["FMT", "PARM", "CMD"]:
             file_header += m.get_msgbuf()
-        if (isbin or islog) and m.get_type() == 'MSG' and m.Message.startswith("Ardu"):
+        if (isbin or islog) and m.get_type() == 'MSG' and m.Message.startswith(
+                "Ardu"):
             file_header += m.get_msgbuf()
-        if m.get_type() in ['PARAM_VALUE','MISSION_ITEM']:
+        if m.get_type() in ['PARAM_VALUE', 'MISSION_ITEM']:
             timestamp = getattr(m, '_timestamp', None)
-            file_header += struct.pack('>Q', timestamp*1.0e6) + m.get_msgbuf()
+            file_header += struct.pack('>Q',
+                                       timestamp * 1.0e6) + m.get_msgbuf()
 
         if not mavutil.evaluate_condition(args.condition, mlog.messages):
             continue
 
         if mlog.flightmode.upper() == args.mode.upper():
             if output is None:
-                path = os.path.join(dirname, "%s%u.%s" % (args.mode, count, extension))
+                path = os.path.join(
+                    dirname, "%s%u.%s" %
+                    (args.mode, count, extension))
                 count += 1
-                print("Creating %s" % path)
+                print(("Creating %s" % path))
                 output = open(path, mode='wb')
                 output.write(file_header)
         else:
@@ -70,9 +86,8 @@ def process(filename):
         if output and m.get_type() != 'BAD_DATA':
             timestamp = getattr(m, '_timestamp', None)
             if not isbin:
-                output.write(struct.pack('>Q', timestamp*1.0e6))
+                output.write(struct.pack('>Q', timestamp * 1.0e6))
             output.write(m.get_msgbuf())
 
 for filename in args.logs:
     process(filename)
-

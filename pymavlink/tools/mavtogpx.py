@@ -5,12 +5,22 @@ example program to extract GPS data from a mavlink log, and create a GPX
 file, for loading into google earth
 '''
 
-import sys, struct, time, os
+import sys
+import struct
+import time
+import os
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("--condition", default=None, help="select packets by a condition")
-parser.add_argument("--nofixcheck", default=False, action='store_true', help="don't check for GPS fix")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="select packets by a condition")
+parser.add_argument(
+    "--nofixcheck",
+    default=False,
+    action='store_true',
+    help="don't check for GPS fix")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 args = parser.parse_args()
 
@@ -33,8 +43,8 @@ def mav_to_gpx(infilename, outfilename):
   <fix>3d</fix>
 </trkpt>
 ''' % (lat, lon, alt,
-       time.strftime("%Y-%m-%dT%H:%M:%SZ", t),
-       hdg, v))
+            time.strftime("%Y-%m-%dT%H:%M:%SZ", t),
+            hdg, v))
 
     def add_header():
         outf.write('''<?xml version="1.0" encoding="UTF-8"?>
@@ -56,17 +66,21 @@ def mav_to_gpx(infilename, outfilename):
 
     add_header()
 
-    count=0
+    count = 0
     while True:
-        m = mlog.recv_match(type=['GPS_RAW', 'GPS_RAW_INT'], condition=args.condition)
+        m = mlog.recv_match(
+            type=[
+                'GPS_RAW',
+                'GPS_RAW_INT'],
+            condition=args.condition)
         if m is None:
             break
         if m.get_type() == 'GPS_RAW_INT':
-            lat = m.lat/1.0e7
-            lon = m.lon/1.0e7
-            alt = m.alt/1.0e3
-            v = m.vel/100.0
-            hdg = m.cog/100.0
+            lat = m.lat / 1.0e7
+            lon = m.lon / 1.0e7
+            alt = m.alt / 1.0e3
+            v = m.vel / 100.0
+            hdg = m.cog / 100.0
             timestamp = m._timestamp
         else:
             lat = m.lat
@@ -83,7 +97,7 @@ def mav_to_gpx(infilename, outfilename):
         process_packet(timestamp, lat, lon, alt, hdg, v)
         count += 1
     add_footer()
-    print("Created %s with %u points" % (outfilename, count))
+    print(("Created %s with %u points" % (outfilename, count)))
 
 
 for infilename in args.logs:

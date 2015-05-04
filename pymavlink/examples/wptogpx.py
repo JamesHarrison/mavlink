@@ -5,7 +5,10 @@ example program to extract GPS data from a waypoint file, and create a GPX
 file, for loading into google earth
 '''
 
-import sys, struct, time, os
+import sys
+import struct
+import time
+import os
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
@@ -56,7 +59,7 @@ def wp_to_gpx(infilename, outfilename):
             process_wp(w, i)
         count += 1
     add_footer()
-    print("Created %s with %u points" % (outfilename, count))
+    print(("Created %s with %u points" % (outfilename, count)))
 
 
 for infilename in args.wpfiles:

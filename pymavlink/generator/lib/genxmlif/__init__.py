@@ -45,16 +45,16 @@
 
 # supported XML interfaces
 
-XMLIF_MINIDOM     = "XMLIF_MINIDOM"
-XMLIF_4DOM        = "XMLIF_4DOM"
+XMLIF_MINIDOM = "XMLIF_MINIDOM"
+XMLIF_4DOM = "XMLIF_4DOM"
 XMLIF_ELEMENTTREE = "XMLIF_ELEMENTTREE"
 
 # namespace definitions
 
-XINC_NAMESPACE  = "http://www.w3.org/2001/XInclude"
+XINC_NAMESPACE = "http://www.w3.org/2001/XInclude"
 
 
-# definition of genxmlif path 
+# definition of genxmlif path
 
 import os
 GENXMLIF_DIR = os.path.dirname(__file__)
@@ -64,21 +64,27 @@ GENXMLIF_DIR = os.path.dirname(__file__)
 # central function to choose the XML interface to be used
 #
 
-def chooseXmlIf (xmlIf, verbose=0, useCaching=1, processXInclude=1):
+def chooseXmlIf(xmlIf, verbose=0, useCaching=1, processXInclude=1):
     if xmlIf == XMLIF_MINIDOM:
-        import xmlifMinidom
-        return xmlifMinidom.XmlInterfaceMinidom(verbose, useCaching, processXInclude)
+        from . import xmlifMinidom
+        return xmlifMinidom.XmlInterfaceMinidom(
+            verbose,
+            useCaching,
+            processXInclude)
 
     elif xmlIf == XMLIF_4DOM:
-        import xmlif4Dom
+        from . import xmlif4Dom
         return xmlif4Dom.XmlInterface4Dom(verbose, useCaching, processXInclude)
 
     elif xmlIf == XMLIF_ELEMENTTREE:
-        import xmlifElementTree
-        return xmlifElementTree.XmlInterfaceElementTree(verbose, useCaching, processXInclude)
+        from . import xmlifElementTree
+        return xmlifElementTree.XmlInterfaceElementTree(
+            verbose,
+            useCaching,
+            processXInclude)
 
     else:
-        raise AttributeError, "Unknown XML interface: %s" %(xmlIf)
+        raise AttributeError("Unknown XML interface: %s" % (xmlIf))
 
 
 ########################################
@@ -87,6 +93,5 @@ def chooseXmlIf (xmlIf, verbose=0, useCaching=1, processXInclude=1):
 # - Expat errors
 # - XInclude errors
 #
-class GenXmlIfError (StandardError):
+class GenXmlIfError (Exception):
     pass
-

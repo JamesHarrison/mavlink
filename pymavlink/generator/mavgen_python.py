@@ -6,10 +6,13 @@ Copyright Andrew Tridgell 2011
 Released under GNU GPL version 3 or later
 '''
 
-import sys, textwrap, os
+import sys
+import textwrap
+import os
 from . import mavparse, mavtemplate
 
 t = mavtemplate.MAVTemplate()
+
 
 def generate_preamble(outf, msgs, basename, args, xml):
     print("Generating preamble")
@@ -135,11 +138,11 @@ class MAVLink_message(object):
             return False
 
         if self.get_srcSystem() != other.get_srcSystem():
-            return False            
+            return False
 
         if self.get_srcComponent() != other.get_srcComponent():
-            return False   
-            
+            return False
+
         for a in self._fieldnames:
             if getattr(self, a) != getattr(other, a):
                 return False
@@ -169,10 +172,11 @@ class MAVLink_message(object):
         return self._msgbuf
 
 """, {'FILELIST' : ",".join(args),
-      'PROTOCOL_MARKER' : xml.protocol_marker,
-      'DIALECT' : os.path.splitext(os.path.basename(basename))[0],
-      'crc_extra' : xml.crc_extra,
-      'WIRE_PROTOCOL_VERSION' : xml.wire_protocol_version })
+      'PROTOCOL_MARKER': xml.protocol_marker,
+      'DIALECT': os.path.splitext(os.path.basename(basename))[0],
+      'crc_extra': xml.crc_extra,
+      'WIRE_PROTOCOL_VERSION': xml.wire_protocol_version})
+
 
 def generate_enums(outf, enums):
     print("Generating enums")
@@ -184,23 +188,33 @@ class EnumEntry(object):
         self.name = name
         self.description = description
         self.param = {}
-        
+
 enums = {}
-''')    
-    wrapper = textwrap.TextWrapper(initial_indent="", subsequent_indent="                        # ")
+''')
+    wrapper = textwrap.TextWrapper(
+        initial_indent="",
+        subsequent_indent="                        # ")
     for e in enums:
         outf.write("\n# %s\n" % e.name)
         outf.write("enums['%s'] = {}\n" % e.name)
         for entry in e.entry:
-            outf.write("%s = %u # %s\n" % (entry.name, entry.value, wrapper.fill(entry.description)))
-            outf.write("enums['%s'][%d] = EnumEntry('%s', '''%s''')\n" % (e.name,
-                                                                          int(entry.value), entry.name,
-                                                                          entry.description))
+            outf.write(
+                "%s = %u # %s\n" %
+                (entry.name,
+                 entry.value,
+                 wrapper.fill(
+                     entry.description)))
+            outf.write(
+                "enums['%s'][%d] = EnumEntry('%s', '''%s''')\n" %
+                (e.name, int(
+                    entry.value), entry.name, entry.description))
             for param in entry.param:
-                outf.write("enums['%s'][%d].param[%d] = '''%s'''\n" % (e.name,
-                                                                       int(entry.value),
-                                                                       int(param.index),
-                                                                       param.description))
+                outf.write(
+                    "enums['%s'][%d].param[%d] = '''%s'''\n" %
+                    (e.name, int(
+                        entry.value), int(
+                        param.index), param.description))
+
 
 def generate_message_ids(outf, msgs):
     print("Generating message IDs")
@@ -209,13 +223,17 @@ def generate_message_ids(outf, msgs):
     for m in msgs:
         outf.write("MAVLINK_MSG_ID_%s = %u\n" % (m.name.upper(), m.id))
 
+
 def generate_classes(outf, msgs):
     print("Generating class definitions")
-    wrapper = textwrap.TextWrapper(initial_indent="        ", subsequent_indent="        ")
+    wrapper = textwrap.TextWrapper(
+        initial_indent="        ",
+        subsequent_indent="        ")
     for m in msgs:
         classname = "MAVLink_%s_message" % m.name.lower()
-        fieldname_str = ", ".join(map(lambda s: "'%s'" % s, m.fieldnames))
-        ordered_fieldname_str = ", ".join(map(lambda s: "'%s'" % s, m.ordered_fieldnames))
+        fieldname_str = ", ".join(["'%s'" % s for s in m.fieldnames])
+        ordered_fieldname_str = ", ".join(
+            ["'%s'" % s for s in m.ordered_fieldnames])
 
         outf.write("""
 class %s(MAVLink_message):
@@ -233,83 +251,91 @@ class %s(MAVLink_message):
         array_lengths = %s
         crc_extra = %s
 
-        def __init__(self""" % (classname, wrapper.fill(m.description.strip()), 
-            m.name.upper(), 
-            m.name.upper(),
-            fieldname_str,
-            ordered_fieldname_str,
-            m.fmtstr,
-            m.native_fmtstr,
-            m.order_map,
-            m.len_map,
-            m.array_len_map,
-            m.crc_extra))
+        def __init__(self""" % (classname, wrapper.fill(m.description.strip()),
+                                m.name.upper(),
+                                m.name.upper(),
+                                fieldname_str,
+                                ordered_fieldname_str,
+                                m.fmtstr,
+                                m.native_fmtstr,
+                                m.order_map,
+                                m.len_map,
+                                m.array_len_map,
+                                m.crc_extra))
         if len(m.fields) != 0:
-                outf.write(", " + ", ".join(m.fieldnames))
+            outf.write(", " + ", ".join(m.fieldnames))
         outf.write("):\n")
-        outf.write("                MAVLink_message.__init__(self, %s.id, %s.name)\n" % (classname, classname))
-        outf.write("                self._fieldnames = %s.fieldnames\n" % (classname))
+        outf.write(
+            "                MAVLink_message.__init__(self, %s.id, %s.name)\n" %
+            (classname, classname))
+        outf.write(
+            "                self._fieldnames = %s.fieldnames\n" %
+            (classname))
         for f in m.fields:
-                outf.write("                self.%s = %s\n" % (f.name, f.name))
+            outf.write("                self.%s = %s\n" % (f.name, f.name))
         outf.write("""
         def pack(self, mav):
                 return MAVLink_message.pack(self, mav, %u, struct.pack('%s'""" % (m.crc_extra, m.fmtstr))
         for field in m.ordered_fields:
-                if (field.type != "char" and field.array_length > 1):
-                        for i in range(field.array_length):
-                                outf.write(", self.{0:s}[{1:d}]".format(field.name,i))
-                else:
-                        outf.write(", self.{0:s}".format(field.name))
+            if (field.type != "char" and field.array_length > 1):
+                for i in range(field.array_length):
+                    outf.write(", self.{0:s}[{1:d}]".format(field.name, i))
+            else:
+                outf.write(", self.{0:s}".format(field.name))
         outf.write("))\n")
 
 
 def native_mavfmt(field):
     '''work out the struct format for a type (in a form expected by mavnative)'''
     map = {
-        'float'    : 'f',
-        'double'   : 'd',
-        'char'     : 'c',
-        'int8_t'   : 'b',
-        'uint8_t'  : 'B',
-        'uint8_t_mavlink_version'  : 'v',
-        'int16_t'  : 'h',
-        'uint16_t' : 'H',
-        'int32_t'  : 'i',
-        'uint32_t' : 'I',
-        'int64_t'  : 'q',
-        'uint64_t' : 'Q',
-        }
+        'float': 'f',
+        'double': 'd',
+        'char': 'c',
+        'int8_t': 'b',
+        'uint8_t': 'B',
+        'uint8_t_mavlink_version': 'v',
+        'int16_t': 'h',
+        'uint16_t': 'H',
+        'int32_t': 'i',
+        'uint32_t': 'I',
+        'int64_t': 'q',
+        'uint64_t': 'Q',
+    }
     return map[field.type]
+
 
 def mavfmt(field):
     '''work out the struct format for a type'''
     map = {
-        'float'    : 'f',
-        'double'   : 'd',
-        'char'     : 'c',
-        'int8_t'   : 'b',
-        'uint8_t'  : 'B',
-        'uint8_t_mavlink_version'  : 'B',
-        'int16_t'  : 'h',
-        'uint16_t' : 'H',
-        'int32_t'  : 'i',
-        'uint32_t' : 'I',
-        'int64_t'  : 'q',
-        'uint64_t' : 'Q',
-        }
+        'float': 'f',
+        'double': 'd',
+        'char': 'c',
+        'int8_t': 'b',
+        'uint8_t': 'B',
+        'uint8_t_mavlink_version': 'B',
+        'int16_t': 'h',
+        'uint16_t': 'H',
+        'int32_t': 'i',
+        'uint32_t': 'I',
+        'int64_t': 'q',
+        'uint64_t': 'Q',
+    }
 
     if field.array_length:
         if field.type == 'char':
-            return str(field.array_length)+'s'
-        return str(field.array_length)+map[field.type]
+            return str(field.array_length) + 's'
+        return str(field.array_length) + map[field.type]
     return map[field.type]
+
 
 def generate_mavlink_class(outf, msgs, xml):
     print("Generating MAVLink class")
 
-    outf.write("\n\nmavlink_map = {\n");
+    outf.write("\n\nmavlink_map = {\n")
     for m in msgs:
-        outf.write("        MAVLINK_MSG_ID_%s : MAVLink_%s_message,\n" % (m.name.upper(), m.name.lower()))
+        outf.write(
+            "        MAVLINK_MSG_ID_%s : MAVLink_%s_message,\n" %
+            (m.name.upper(), m.name.lower()))
     outf.write("}\n\n")
 
     t.write(outf, """
@@ -405,7 +431,7 @@ class MAVLink(object):
                 ret = self.native.expected_length - len(self.buf)
             else:
                 ret = self.expected_length - len(self.buf)
-            
+
             if ret <= 0:
                 return 1
             return ret
@@ -573,19 +599,26 @@ class MAVLink(object):
                 return m
 """, xml)
 
+
 def generate_methods(outf, msgs):
     print("Generating methods")
 
     def field_descriptions(fields):
         ret = ""
         for f in fields:
-            ret += "                %-18s        : %s (%s)\n" % (f.name, f.description.strip(), f.type)
+            ret += "                %-18s        : %s (%s)\n" % (
+                f.name, f.description.strip(), f.type)
         return ret
 
-    wrapper = textwrap.TextWrapper(initial_indent="", subsequent_indent="                ")
+    wrapper = textwrap.TextWrapper(
+        initial_indent="",
+        subsequent_indent="                ")
 
     for m in msgs:
-        comment = "%s\n\n%s" % (wrapper.fill(m.description.strip()), field_descriptions(m.fields))
+        comment = "%s\n\n%s" % (wrapper.fill(
+            m.description.strip()),
+            field_descriptions(
+            m.fields))
 
         selffieldnames = 'self, '
         for f in m.fields:
@@ -595,10 +628,10 @@ def generate_methods(outf, msgs):
                 selffieldnames += '%s, ' % f.name
         selffieldnames = selffieldnames[:-2]
 
-        sub = {'NAMELOWER'      : m.name.lower(),
-               'SELFFIELDNAMES' : selffieldnames,
-               'COMMENT'        : comment,
-               'FIELDNAMES'     : ", ".join(m.fieldnames)}
+        sub = {'NAMELOWER': m.name.lower(),
+               'SELFFIELDNAMES': selffieldnames,
+               'COMMENT': comment,
+               'FIELDNAMES': ", ".join(m.fieldnames)}
 
         t.write(outf, """
         def ${NAMELOWER}_encode(${SELFFIELDNAMES}):
@@ -643,9 +676,9 @@ def generate(basename, xml):
         for f in m.ordered_fields:
             m.fmtstr += mavfmt(f)
             m.native_fmtstr += native_mavfmt(f)
-        m.order_map = [ 0 ] * len(m.fieldnames)
-        m.len_map = [ 0 ] * len(m.fieldnames)
-        m.array_len_map = [ 0 ] * len(m.fieldnames)
+        m.order_map = [0] * len(m.fieldnames)
+        m.len_map = [0] * len(m.fieldnames)
+        m.array_len_map = [0] * len(m.fieldnames)
         for i in range(0, len(m.fieldnames)):
             m.order_map[i] = m.ordered_fieldnames.index(m.fieldnames[i])
             m.array_len_map[i] = m.ordered_fields[i].array_length
@@ -653,7 +686,7 @@ def generate(basename, xml):
             n = m.order_map[i]
             m.len_map[n] = m.fieldlengths[i]
 
-    print("Generating %s" % filename)
+    print(("Generating %s" % filename))
     outf = open(filename, "w")
     generate_preamble(outf, msgs, basename, filelist, xml[0])
     generate_enums(outf, enums)
@@ -662,4 +695,4 @@ def generate(basename, xml):
     generate_mavlink_class(outf, msgs, xml[0])
     generate_methods(outf, msgs)
     outf.close()
-    print("Generated %s OK" % filename)
+    print(("Generated %s OK" % filename))

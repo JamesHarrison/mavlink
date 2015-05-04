@@ -5,7 +5,7 @@
 Quaternion implementation for use in pymavlink
 """
 
-from __future__ import absolute_import, division, print_function
+
 import numpy as np
 from .rotmat import Vector3, Matrix3
 
@@ -219,7 +219,9 @@ class QuaternionBase(object):
         :returns: true if the quaternions are almost equal
         """
         if isinstance(other, QuaternionBase):
-            return np.allclose(self.q, other.q) or np.allclose(self.q, -other.q)
+            return np.allclose(
+                self.q, other.q) or np.allclose(
+                self.q, -other.q)
         return NotImplemented
 
     def __mul__(self, other):
@@ -421,11 +423,11 @@ class QuaternionBase(object):
         assert(dcm.shape == (3, 3))
         theta = np.arcsin(min(1, max(-1, -dcm[2][0])))
 
-        if abs(theta - np.pi/2) < 1.0e-3:
+        if abs(theta - np.pi / 2) < 1.0e-3:
             phi = 0.0
             psi = (np.arctan2(dcm[1][2] - dcm[0][1],
                               dcm[0][2] + dcm[1][1]) + phi)
-        elif abs(theta + np.pi/2) < 1.0e-3:
+        elif abs(theta + np.pi / 2) < 1.0e-3:
             phi = 0.0
             psi = np.arctan2(dcm[1][2] - dcm[0][1],
                              dcm[0][2] + dcm[1][1] - phi)
@@ -610,7 +612,7 @@ class Quaternion(QuaternionBase):
         """
         assert(isinstance(dcm, Matrix3))
         return np.array(dcm.to_euler())
-    
+
     def __mul__(self, other):
         """
         :param other: Quaternion

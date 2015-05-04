@@ -4,19 +4,24 @@
 convert a MAVLink tlog file to a MATLab mfile
 '''
 
-import sys, os
+import sys
+import os
 import re
 from pymavlink import mavutil
+
 
 def process_tlog(filename):
     '''convert a tlog to a .m file'''
 
-    print("Processing %s" % filename)
+    print(("Processing %s" % filename))
 
-    mlog = mavutil.mavlink_connection(filename, dialect=args.dialect, zero_time_base=True)
+    mlog = mavutil.mavlink_connection(
+        filename,
+        dialect=args.dialect,
+        zero_time_base=True)
 
     # first walk the entire file, grabbing all messages into a hash of lists,
-    #and the first message of each type into a hash
+    # and the first message of each type into a hash
     msg_types = {}
     msg_lists = {}
 
@@ -24,17 +29,18 @@ def process_tlog(filename):
     if types is not None:
         types = types.split(',')
 
-    # note that Octave doesn't like any extra '.', '*', '-', characters in the filename
+    # note that Octave doesn't like any extra '.', '*', '-', characters in the
+    # filename
     (head, tail) = os.path.split(filename)
     basename = '.'.join(tail.split('.')[:-1])
-    mfilename = re.sub('[\.\-\+\*]','_', basename) + '.m'
+    mfilename = re.sub('[\.\-\+\*]', '_', basename) + '.m'
     # Octave also doesn't like files that don't start with a letter
     if (re.match('^[a-zA-z]', mfilename) == None):
         mfilename = 'm_' + mfilename
 
     if head is not None:
         mfilename = os.path.join(head, mfilename)
-    print("Creating %s" % mfilename)
+    print(("Creating %s" % mfilename))
 
     f = open(mfilename, "w")
 
@@ -61,7 +67,7 @@ def process_tlog(filename):
             for field in fieldnames:
                 val = getattr(m, field)
                 if not isinstance(val, str):
-                    if type(val) is not list:
+                    if not isinstance(val, list):
                         f.write(",'%s'" % field)
                     else:
                         for i in range(0, len(val)):
@@ -69,11 +75,13 @@ def process_tlog(filename):
             f.write("};\n")
 
         type_counters[mtype] += 1
-        f.write("%s.data(%u,:) = [%f" % (mtype, type_counters[mtype], m._timestamp))
+        f.write(
+            "%s.data(%u,:) = [%f" %
+            (mtype, type_counters[mtype], m._timestamp))
         for field in m._fieldnames:
             val = getattr(m, field)
             if not isinstance(val, str):
-                if type(val) is not list:
+                if not isinstance(val, list):
                     f.write(",%.20g" % val)
                 else:
                     for i in range(0, len(val)):
@@ -84,10 +92,19 @@ def process_tlog(filename):
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("--condition", default=None, help="select packets by condition")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="select packets by condition")
 parser.add_argument("-o", "--output", default=None, help="output filename")
-parser.add_argument("--types", default=None, help="types of messages (comma separated)")
-parser.add_argument("--dialect", default="ardupilotmega", help="MAVLink dialect")
+parser.add_argument(
+    "--types",
+    default=None,
+    help="types of messages (comma separated)")
+parser.add_argument(
+    "--dialect",
+    default="ardupilotmega",
+    help="MAVLink dialect")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 args = parser.parse_args()
 

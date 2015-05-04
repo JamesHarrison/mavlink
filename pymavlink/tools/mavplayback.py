@@ -7,22 +7,39 @@ realtime mavlink stream
 Useful for visualising flights
 '''
 
-import sys, time, os, struct
-import Tkinter
+import sys
+import time
+import os
+import struct
+import tkinter
 
 from pymavlink import fgFDM
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("--planner", action='store_true', help="use planner file format")
-parser.add_argument("--condition", default=None, help="select packets by condition")
-parser.add_argument("--gpsalt", action='store_true', default=False, help="Use GPS altitude")
-parser.add_argument("--mav10", action='store_true', default=False, help="Use MAVLink protocol 1.0")
+parser.add_argument(
+    "--planner",
+    action='store_true',
+    help="use planner file format")
+parser.add_argument(
+    "--condition",
+    default=None,
+    help="select packets by condition")
+parser.add_argument(
+    "--gpsalt",
+    action='store_true',
+    default=False,
+    help="Use GPS altitude")
+parser.add_argument(
+    "--mav10",
+    action='store_true',
+    default=False,
+    help="Use MAVLink protocol 1.0")
 parser.add_argument("--out", help="MAVLink output port (IP:port)",
-                  action='append', default=['127.0.0.1:14550'])
+                    action='append', default=['127.0.0.1:14550'])
 parser.add_argument("--fgout", action='append', default=['127.0.0.1:5503'],
-                  help="flightgear FDM NET output (IP:port)")
+                    help="flightgear FDM NET output (IP:port)")
 parser.add_argument("--baudrate", type=int, default=57600, help='baud rate')
 parser.add_argument("log", metavar="LOG")
 args = parser.parse_args()
@@ -38,21 +55,28 @@ def LoadImage(filename):
     '''return an image from the images/ directory'''
     app_dir = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(app_dir, 'images', filename)
-    return Tkinter.PhotoImage(file=path)
+    return tkinter.PhotoImage(file=path)
 
 
 class App():
+
     def __init__(self, filename):
-        self.root = Tkinter.Tk()
+        self.root = tkinter.Tk()
 
         self.filesize = os.path.getsize(filename)
         self.filepos = 0.0
 
-        self.mlog = mavutil.mavlink_connection(filename, planner_format=args.planner,
-                                               robust_parsing=True)
+        self.mlog = mavutil.mavlink_connection(
+            filename,
+            planner_format=args.planner,
+            robust_parsing=True)
         self.mout = []
         for m in args.out:
-            self.mout.append(mavutil.mavlink_connection(m, input=False, baud=args.baudrate))
+            self.mout.append(
+                mavutil.mavlink_connection(
+                    m,
+                    input=False,
+                    baud=args.baudrate))
 
         self.fgout = []
         for f in args.fgout:
@@ -67,21 +91,31 @@ class App():
 
         self.paused = False
 
-        self.topframe = Tkinter.Frame(self.root)
-        self.topframe.pack(side=Tkinter.TOP)
+        self.topframe = tkinter.Frame(self.root)
+        self.topframe.pack(side=tkinter.TOP)
 
-        self.frame = Tkinter.Frame(self.root)
-        self.frame.pack(side=Tkinter.LEFT)
+        self.frame = tkinter.Frame(self.root)
+        self.frame.pack(side=tkinter.LEFT)
 
-        self.slider = Tkinter.Scale(self.topframe, from_=0, to=1.0, resolution=0.01,
-                                    orient=Tkinter.HORIZONTAL, command=self.slew)
-        self.slider.pack(side=Tkinter.LEFT)
+        self.slider = tkinter.Scale(
+            self.topframe,
+            from_=0,
+            to=1.0,
+            resolution=0.01,
+            orient=tkinter.HORIZONTAL,
+            command=self.slew)
+        self.slider.pack(side=tkinter.LEFT)
 
-        self.clock = Tkinter.Label(self.topframe,text="")
-        self.clock.pack(side=Tkinter.RIGHT)
+        self.clock = tkinter.Label(self.topframe, text="")
+        self.clock.pack(side=tkinter.RIGHT)
 
-        self.playback = Tkinter.Spinbox(self.topframe, from_=0, to=20, increment=0.1, width=3)
-        self.playback.pack(side=Tkinter.BOTTOM)
+        self.playback = tkinter.Spinbox(
+            self.topframe,
+            from_=0,
+            to=20,
+            increment=0.1,
+            width=3)
+        self.playback.pack(side=tkinter.BOTTOM)
         self.playback.delete(0, "end")
         self.playback.insert(0, 1)
 
@@ -91,8 +125,8 @@ class App():
         self.button('rewind', 'media-seek-backward.gif', self.rewind)
         self.button('forward', 'media-seek-forward.gif', self.forward)
         self.button('status', 'Status', self.status)
-        self.flightmode = Tkinter.Label(self.frame,text="")
-        self.flightmode.pack(side=Tkinter.RIGHT)
+        self.flightmode = tkinter.Label(self.frame, text="")
+        self.flightmode.pack(side=tkinter.RIGHT)
 
         self.next_message()
         self.root.mainloop()
@@ -101,13 +135,12 @@ class App():
         '''add a button'''
         try:
             img = LoadImage(filename)
-            b = Tkinter.Button(self.frame, image=img, command=command)
+            b = tkinter.Button(self.frame, image=img, command=command)
             b.image = img
         except Exception:
-            b = Tkinter.Button(self.frame, text=filename, command=command)
-        b.pack(side=Tkinter.LEFT)
+            b = tkinter.Button(self.frame, text=filename, command=command)
+        b.pack(side=tkinter.LEFT)
         self.buttons[name] = b
-
 
     def pause(self):
         '''pause playback'''
@@ -115,7 +148,7 @@ class App():
 
     def rewind(self):
         '''rewind 10%'''
-        pos = int(self.mlog.f.tell() - 0.1*self.filesize)
+        pos = int(self.mlog.f.tell() - 0.1 * self.filesize)
         if pos < 0:
             pos = 0
         self.mlog.f.seek(pos)
@@ -123,7 +156,7 @@ class App():
 
     def forward(self):
         '''forward 10%'''
-        pos = int(self.mlog.f.tell() + 0.1*self.filesize)
+        pos = int(self.mlog.f.tell() + 0.1 * self.filesize)
         if pos > self.filesize:
             pos = self.filesize - 2048
         self.mlog.f.seek(pos)
@@ -132,9 +165,7 @@ class App():
     def status(self):
         '''show status'''
         for m in sorted(self.mlog.messages.keys()):
-            print(str(self.mlog.messages[m]))
-
-
+            print((str(self.mlog.messages[m])))
 
     def find_message(self):
         '''find the next valid message'''
@@ -153,7 +184,6 @@ class App():
             pos = float(value) * self.filesize
             self.mlog.f.seek(int(pos))
             self.find_message()
-
 
     def next_message(self):
         '''called as each msg is ready'''
@@ -175,7 +205,8 @@ class App():
         if speed == 0.0:
             self.root.after(200, self.next_message)
         else:
-            self.root.after(int(1000*(timestamp - self.last_timestamp) / speed), self.next_message)
+            self.root.after(
+                int(1000 * (timestamp - self.last_timestamp) / speed), self.next_message)
         self.last_timestamp = timestamp
 
         while True:
@@ -201,10 +232,10 @@ class App():
                 self.fdm.set('altitude', msg.alt, units='meters')
 
         if msg.get_type() == "GPS_RAW_INT":
-            self.fdm.set('latitude', msg.lat/1.0e7, units='degrees')
-            self.fdm.set('longitude', msg.lon/1.0e7, units='degrees')
+            self.fdm.set('latitude', msg.lat / 1.0e7, units='degrees')
+            self.fdm.set('longitude', msg.lon / 1.0e7, units='degrees')
             if args.gpsalt:
-                self.fdm.set('altitude', msg.alt/1.0e3, units='meters')
+                self.fdm.set('altitude', msg.alt / 1.0e3, units='meters')
 
         if msg.get_type() == "VFR_HUD":
             if not args.gpsalt:
@@ -221,14 +252,14 @@ class App():
             self.fdm.set('psidot', msg.yawspeed, units='rps')
 
         if msg.get_type() == "RC_CHANNELS_SCALED":
-            self.fdm.set("right_aileron", msg.chan1_scaled*0.0001)
-            self.fdm.set("left_aileron", -msg.chan1_scaled*0.0001)
-            self.fdm.set("rudder",        msg.chan4_scaled*0.0001)
-            self.fdm.set("elevator",      msg.chan2_scaled*0.0001)
-            self.fdm.set('rpm',           msg.chan3_scaled*0.01)
+            self.fdm.set("right_aileron", msg.chan1_scaled * 0.0001)
+            self.fdm.set("left_aileron", -msg.chan1_scaled * 0.0001)
+            self.fdm.set("rudder", msg.chan4_scaled * 0.0001)
+            self.fdm.set("elevator", msg.chan2_scaled * 0.0001)
+            self.fdm.set('rpm', msg.chan3_scaled * 0.01)
 
         if msg.get_type() == 'STATUSTEXT':
-            print("APM: %s" % msg.text)
+            print(("APM: %s" % msg.text))
 
         if msg.get_type() == 'SYS_STATUS':
             self.flightmode.configure(text=self.mlog.flightmode)
@@ -243,4 +274,4 @@ class App():
                 f.write(self.fdm.pack())
 
 
-app=App(filename)
+app = App(filename)

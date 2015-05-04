@@ -4,11 +4,19 @@
 extract mavlink parameter values
 '''
 
-import sys, time, os
+import sys
+import time
+import os
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("-c", "--changes", dest="changesOnly", default=False, action="store_true", help="Show only changes to parameters.")
+parser.add_argument(
+    "-c",
+    "--changes",
+    dest="changesOnly",
+    default=False,
+    action="store_true",
+    help="Show only changes to parameters.")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 
 args = parser.parse_args()
@@ -16,6 +24,7 @@ args = parser.parse_args()
 from pymavlink import mavutil
 
 parms = {}
+
 
 def mavparms(logfile):
     '''extract mavlink parameters'''
@@ -35,8 +44,17 @@ def mavparms(logfile):
             pname = m.Name
             value = m.Value
         if len(pname) > 0:
-            if args.changesOnly is True and pname in parms and parms[pname] != value:
-                print("%s %-15s %.6f -> %.6f" % (time.asctime(time.localtime(m._timestamp)), pname, parms[pname], value))
+            if args.changesOnly is True and pname in parms and parms[
+                    pname] != value:
+                print(
+                    (
+                        "%s %-15s %.6f -> %.6f" %
+                        (time.asctime(
+                            time.localtime(
+                                m._timestamp)),
+                            pname,
+                            parms[pname],
+                            value)))
 
             parms[pname] = value
 
@@ -45,7 +63,6 @@ for filename in args.logs:
     mavparms(filename)
 
 if (args.changesOnly is False):
-    keys = parms.keys()
-    keys.sort()
+    keys = sorted(parms.keys())
     for p in keys:
-        print("%-15s %.6f" % (p, parms[p]))
+        print(("%-15s %.6f" % (p, parms[p])))

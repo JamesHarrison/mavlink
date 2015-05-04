@@ -39,65 +39,63 @@
 
 
 from types import TupleType
-from ..genxmlif.xmlifApi   import XmlElementWrapper
+from ..genxmlif.xmlifApi import XmlElementWrapper
 
 
 class XsvXmlElementWrapper (XmlElementWrapper):
-    
-#++++++++++++ special XSD validation support ++++++++++++++++++++
+
+    #++++++++++++ special XSD validation support ++++++++++++++++++++
     def __init__(self, element, treeWrapper, curNs=[], initAttrSeq=1):
-        XmlElementWrapper.__init__(self, element, treeWrapper, curNs, initAttrSeq)
+        XmlElementWrapper.__init__(
+            self,
+            element,
+            treeWrapper,
+            curNs,
+            initAttrSeq)
         self.schemaRootNode = None
         self.xsdNode = None
         self.xsdAttrNodes = {}
 
-    
     def cloneNode(self, deep, cloneCallback=None):
         return XmlElementWrapper.cloneNode(self, deep, self.cloneCallback)
-
 
     def cloneCallback(self, nodeCopy):
         nodeCopy.schemaRootNode = self.schemaRootNode
         nodeCopy.xsdNode = self.xsdNode
         nodeCopy.xsdAttrNodes = self.xsdAttrNodes.copy()
 
-
-    def getSchemaRootNode (self):
+    def getSchemaRootNode(self):
         """Retrieve XML schema root node which this element node belongs to
            (e.g. for accessing target namespace attribute).
-        
+
         Returns XML schema root node which this element node belongs to
         """
         return self.schemaRootNode
-    
 
-    def setSchemaRootNode (self, schemaRootNode):
+    def setSchemaRootNode(self, schemaRootNode):
         """Store XML schema root node which this element node belongs to.
-        
+
         Input parameter:
             schemaRootNode:    schema root node which this element node belongs to
         """
         self.schemaRootNode = schemaRootNode
 
-
-    def getXsdNode (self):
+    def getXsdNode(self):
         """Retrieve XML schema node responsible for this element node.
-        
+
         Returns XML schema node responsible for this element node.
         """
         return self.xsdNode
-    
 
-    def setXsdNode (self, xsdNode):
+    def setXsdNode(self, xsdNode):
         """Store XML schema node responsible for this element node.
-        
+
         Input parameter:
             xsdNode:    responsible XML schema ElementWrapper
         """
         self.xsdNode = xsdNode
 
-
-    def getXsdAttrNode (self, tupleOrAttrName):
+    def getXsdAttrNode(self, tupleOrAttrName):
         """Retrieve XML schema node responsible for the requested attribute.
 
         Input parameter:
@@ -109,17 +107,14 @@ class XsvXmlElementWrapper (XmlElementWrapper):
         except:
             if isinstance(tupleOrAttrName, TupleType):
                 if tupleOrAttrName[1] == '*' and len(self.xsdAttrNodes) == 1:
-                    return self.xsdAttrNodes.values()[0]
+                    return list(self.xsdAttrNodes.values())[0]
             return None
-    
 
-    def setXsdAttrNode (self, tupleOrAttrName, xsdAttrNode):
+    def setXsdAttrNode(self, tupleOrAttrName, xsdAttrNode):
         """Store XML schema node responsible for the given attribute.
-        
+
         Input parameter:
             tupleOrAttrName:  tuple '(namespace, attributeName)' or 'attributeName' if no namespace is used
             xsdAttrNode:      responsible XML schema ElementWrapper
         """
         self.xsdAttrNodes[tupleOrAttrName] = xsdAttrNode
-
-

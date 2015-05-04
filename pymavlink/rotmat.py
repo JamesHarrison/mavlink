@@ -25,18 +25,21 @@
 
 from math import sin, cos, sqrt, asin, atan2, pi, radians, acos, degrees
 
+
 class Vector3:
+
     '''a vector'''
+
     def __init__(self, x=None, y=None, z=None):
-        if x != None and y != None and z != None:
+        if x is not None and y is not None and z is not None:
             self.x = float(x)
             self.y = float(y)
             self.z = float(z)
-        elif x != None and len(x) == 3:
+        elif x is not None and len(x) == 3:
             self.x = float(x[0])
             self.y = float(x[1])
             self.z = float(x[2])
-        elif x != None:
+        elif x is not None:
             raise ValueError('bad initialiser')
         else:
             self.x = float(0)
@@ -82,7 +85,7 @@ class Vector3:
     def __mul__(self, v):
         if isinstance(v, Vector3):
             '''dot product'''
-            return self.x*v.x + self.y*v.y + self.z*v.z
+            return self.x * v.x + self.y * v.y + self.z * v.z
         return Vector3(self.x * v,
                        self.y * v,
                        self.z * v)
@@ -96,9 +99,9 @@ class Vector3:
 
     def __mod__(self, v):
         '''cross product'''
-        return Vector3(self.y*v.z - self.z*v.y,
-                       self.z*v.x - self.x*v.z,
-                       self.x*v.y - self.y*v.x)
+        return Vector3(self.y * v.z - self.z * v.y,
+                       self.z * v.x - self.x * v.z,
+                       self.x * v.y - self.y * v.x)
 
     def __copy__(self):
         return Vector3(self.x, self.y, self.z)
@@ -124,8 +127,11 @@ class Vector3:
         self.y = v.y
         self.z = v.z
 
+
 class Matrix3:
+
     '''a 3x3 matrix, intended as a rotation matrix'''
+
     def __init__(self, a=None, b=None, c=None):
         if a is not None and b is not None and c is not None:
             self.a = a.copy()
@@ -141,15 +147,14 @@ class Matrix3:
             self.c.x, self.c.y, self.c.z)
 
     def identity(self):
-        self.a = Vector3(1,0,0)
-        self.b = Vector3(0,1,0)
-        self.c = Vector3(0,0,1)
+        self.a = Vector3(1, 0, 0)
+        self.b = Vector3(0, 1, 0)
+        self.c = Vector3(0, 0, 1)
 
     def transposed(self):
         return Matrix3(Vector3(self.a.x, self.b.x, self.c.x),
                        Vector3(self.a.y, self.b.y, self.c.y),
                        Vector3(self.a.z, self.b.z, self.c.z))
-
 
     def from_euler(self, roll, pitch, yaw):
         '''fill the matrix from Euler angles in radians'''
@@ -170,7 +175,6 @@ class Matrix3:
         self.c.y = sr * cp
         self.c.z = cr * cp
 
-
     def to_euler(self):
         '''find Euler angles (321 convention) for the matrix'''
         if self.c.x >= 1.0:
@@ -180,9 +184,8 @@ class Matrix3:
         else:
             pitch = -asin(self.c.x)
         roll = atan2(self.c.y, self.c.z)
-        yaw  = atan2(self.b.x, self.a.x)
+        yaw = atan2(self.b.x, self.a.x)
         return (roll, pitch, yaw)
-
 
     def to_euler312(self):
         '''find Euler angles (312 convention) for the matrix.
@@ -210,11 +213,11 @@ class Matrix3:
         self.a.x = c1 * c3 - s1 * s2 * s3
         self.b.y = c1 * c2
         self.c.z = c3 * c2
-        self.a.y = -c2*s1
-        self.a.z = s3*c1 + c3*s2*s1
-        self.b.x = c3*s1 + s3*s2*c1
-        self.b.z = s1*s3 - s2*c1*c3
-        self.c.x = -s3*c2
+        self.a.y = -c2 * s1
+        self.a.z = s3 * c1 + c3 * s2 * s1
+        self.b.x = c3 * s1 + s3 * s2 * c1
+        self.b.z = s1 * s3 - s2 * c1 * c3
+        self.c.x = -s3 * c2
         self.c.y = s2
 
     def __add__(self, m):
@@ -236,15 +239,19 @@ class Matrix3:
                            self.c.x * v.x + self.c.y * v.y + self.c.z * v.z)
         elif isinstance(other, Matrix3):
             m = other
-            return Matrix3(Vector3(self.a.x * m.a.x + self.a.y * m.b.x + self.a.z * m.c.x,
-                                   self.a.x * m.a.y + self.a.y * m.b.y + self.a.z * m.c.y,
-                                   self.a.x * m.a.z + self.a.y * m.b.z + self.a.z * m.c.z),
-                           Vector3(self.b.x * m.a.x + self.b.y * m.b.x + self.b.z * m.c.x,
-                                   self.b.x * m.a.y + self.b.y * m.b.y + self.b.z * m.c.y,
-                                   self.b.x * m.a.z + self.b.y * m.b.z + self.b.z * m.c.z),
-                           Vector3(self.c.x * m.a.x + self.c.y * m.b.x + self.c.z * m.c.x,
-                                   self.c.x * m.a.y + self.c.y * m.b.y + self.c.z * m.c.y,
-                                   self.c.x * m.a.z + self.c.y * m.b.z + self.c.z * m.c.z))
+            return Matrix3(
+                Vector3(
+                    self.a.x * m.a.x + self.a.y * m.b.x + self.a.z * m.c.x,
+                    self.a.x * m.a.y + self.a.y * m.b.y + self.a.z * m.c.y,
+                    self.a.x * m.a.z + self.a.y * m.b.z + self.a.z * m.c.z),
+                Vector3(
+                    self.b.x * m.a.x + self.b.y * m.b.x + self.b.z * m.c.x,
+                    self.b.x * m.a.y + self.b.y * m.b.y + self.b.z * m.c.y,
+                    self.b.x * m.a.z + self.b.y * m.b.z + self.b.z * m.c.z),
+                Vector3(
+                    self.c.x * m.a.x + self.c.y * m.b.x + self.c.z * m.c.x,
+                    self.c.x * m.a.y + self.c.y * m.b.y + self.c.z * m.c.y,
+                    self.c.x * m.a.z + self.c.y * m.b.z + self.c.z * m.c.z))
         v = other
         return Matrix3(self.a * v, self.b * v, self.c * v)
 
@@ -299,16 +306,15 @@ class Matrix3:
         uz = axis.z
         ct = cos(angle)
         st = sin(angle)
-        self.a.x = ct + (1-ct) * ux**2
-        self.a.y = ux*uy*(1-ct) - uz*st
-        self.a.z = ux*uz*(1-ct) + uy*st
-        self.b.x = uy*ux*(1-ct) + uz*st
-        self.b.y = ct + (1-ct) * uy**2
-        self.b.z = uy*uz*(1-ct) - ux*st
-        self.c.x = uz*ux*(1-ct) - uy*st
-        self.c.y = uz*uy*(1-ct) + ux*st
-        self.c.z = ct + (1-ct) * uz**2
-
+        self.a.x = ct + (1 - ct) * ux**2
+        self.a.y = ux * uy * (1 - ct) - uz * st
+        self.a.z = ux * uz * (1 - ct) + uy * st
+        self.b.x = uy * ux * (1 - ct) + uz * st
+        self.b.y = ct + (1 - ct) * uy**2
+        self.b.z = uy * uz * (1 - ct) - ux * st
+        self.c.x = uz * ux * (1 - ct) - uy * st
+        self.c.y = uz * uy * (1 - ct) + ux * st
+        self.c.z = ct + (1 - ct) * uz**2
 
     def from_two_vectors(self, vec1, vec2):
         '''get a rotation matrix from two vectors.
@@ -318,28 +324,34 @@ class Matrix3:
         cross = vec1 % vec2
         if cross.length() == 0:
             # the two vectors are colinear
-            return self.from_euler(0,0,angle)
+            return self.from_euler(0, 0, angle)
         cross.normalize()
         return self.from_axis_angle(cross, angle)
 
     def close(self, m, tol=1e-7):
         return self.a.close(m.a) and self.b.close(m.b) and self.c.close(m.c)
 
+
 class Plane:
+
     '''a plane in 3 space, defined by a point and a vector normal'''
+
     def __init__(self, point=None, normal=None):
         if point is None:
-            point = Vector3(0,0,0)
+            point = Vector3(0, 0, 0)
         if normal is None:
             normal = Vector3(0, 0, 1)
         self.point = point
         self.normal = normal
 
+
 class Line:
+
     '''a line in 3 space, defined by a point and a vector'''
+
     def __init__(self, point=None, vector=None):
         if point is None:
-            point = Vector3(0,0,0)
+            point = Vector3(0, 0, 0)
         if vector is None:
             vector = Vector3(0, 0, 1)
         self.point = point
@@ -357,7 +369,6 @@ class Line:
         return (self.vector * d) + self.point
 
 
-
 def test_euler():
     '''check that from_euler() and to_euler() are consistent'''
     m = Matrix3()
@@ -367,11 +378,11 @@ def test_euler():
             for y in range(-179, 179, 3):
                 m.from_euler(radians(r), radians(p), radians(y))
                 (r2, p2, y2) = m.to_euler()
-                v1 = Vector3(r,p,y)
-                v2 = Vector3(degrees(r2),degrees(p2),degrees(y2))
+                v1 = Vector3(r, p, y)
+                v2 = Vector3(degrees(r2), degrees(p2), degrees(y2))
                 diff = v1 - v2
                 if diff.length() > 1.0e-12:
-                    print('EULER ERROR:', v1, v2, diff.length())
+                    print(('EULER ERROR:', v1, v2, diff.length()))
 
 
 def test_two_vectors():
@@ -379,23 +390,25 @@ def test_two_vectors():
     import random
     for i in range(1000):
         v1 = Vector3(1, 0.2, -3)
-        v2 = Vector3(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-5,5))
+        v2 = Vector3(
+            random.uniform(-5, 5), random.uniform(-5, 5), random.uniform(-5, 5))
         m = Matrix3()
         m.from_two_vectors(v1, v2)
         v3 = m * v1
         diff = v3.normalized() - v2.normalized()
         (r, p, y) = m.to_euler()
         if diff.length() > 0.001:
-            print('err=%f' % diff.length())
-            print("r/p/y = %.1f %.1f %.1f" % (
-                degrees(r), degrees(p), degrees(y)))
-            print(v1.normalized(), v2.normalized(), v3.normalized())
+            print(('err=%f' % diff.length()))
+            print(("r/p/y = %.1f %.1f %.1f" % (
+                degrees(r), degrees(p), degrees(y))))
+            print((v1.normalized(), v2.normalized(), v3.normalized()))
+
 
 def test_plane():
     '''testing line/plane intersection'''
     print("testing plane/line maths")
-    plane = Plane(Vector3(0,0,0), Vector3(0,0,1))
-    line = Line(Vector3(0,0,100), Vector3(10, 10, -90))
+    plane = Plane(Vector3(0, 0, 0), Vector3(0, 0, 1))
+    line = Line(Vector3(0, 0, 100), Vector3(10, 10, -90))
     p = line.plane_intersection(plane)
     print(p)
 

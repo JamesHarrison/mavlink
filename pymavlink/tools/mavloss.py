@@ -4,15 +4,30 @@
 show MAVLink packet loss
 '''
 
-import sys, time, os
+import sys
+import time
+import os
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("--no-timestamps", dest="notimestamps", action='store_true', help="Log doesn't have timestamps")
-parser.add_argument("--planner", action='store_true', help="use planner file format")
-parser.add_argument("--robust", action='store_true', help="Enable robust parsing (skip over bad data)")
+parser.add_argument(
+    "--no-timestamps",
+    dest="notimestamps",
+    action='store_true',
+    help="Log doesn't have timestamps")
+parser.add_argument(
+    "--planner",
+    action='store_true',
+    help="use planner file format")
+parser.add_argument(
+    "--robust",
+    action='store_true',
+    help="Enable robust parsing (skip over bad data)")
 parser.add_argument("--condition", default=None, help="condition for packets")
-parser.add_argument("--dialect", default="ardupilotmega", help="MAVLink dialect")
+parser.add_argument(
+    "--dialect",
+    default="ardupilotmega",
+    help="MAVLink dialect")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 
 args = parser.parse_args()
@@ -22,14 +37,15 @@ from pymavlink import mavutil
 
 def mavloss(logfile):
     '''work out signal loss times for a log file'''
-    print("Processing log %s" % filename)
+    print(("Processing log %s" % filename))
     mlog = mavutil.mavlink_connection(filename,
                                       planner_format=args.planner,
                                       notimestamps=args.notimestamps,
                                       dialect=args.dialect,
                                       robust_parsing=args.robust)
 
-    # Track the reasons for MAVLink parsing errors and print them all out at the end.
+    # Track the reasons for MAVLink parsing errors and print them all out at
+    # the end.
     reason_ids = set()
     reasons = []
 
@@ -48,14 +64,14 @@ def mavloss(logfile):
                 reasons.append(m.reason)
 
     # Print out the final packet loss results
-    print("%u packets, %u lost %.1f%%" % (
-            mlog.mav_count, mlog.mav_loss, mlog.packet_loss()))
+    print(("%u packets, %u lost %.1f%%" % (
+        mlog.mav_count, mlog.mav_loss, mlog.packet_loss())))
 
     # Also print out the reasons why losses occurred
     if len(reasons) > 0:
         print("Packet loss at least partially attributed to the following:")
         for r in reasons:
-            print("  * " + r)
+            print(("  * " + r))
 
 for filename in args.logs:
     mavloss(filename)

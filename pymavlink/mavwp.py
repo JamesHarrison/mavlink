@@ -2,7 +2,8 @@
 module for loading/saving waypoints
 '''
 
-import time, copy
+import time
+import copy
 import logging
 from . import mavutil
 try:
@@ -14,14 +15,18 @@ except ImportError:
 
 
 class MAVWPError(Exception):
+
     '''MAVLink WP error class'''
+
     def __init__(self, msg):
         Exception.__init__(self, msg)
         self.message = msg
 
 
 class MAVWPLoader(object):
+
     '''MAVLink waypoint loader'''
+
     def __init__(self, target_system=0, target_component=0):
         self.wpoints = []
         self.target_system = target_system
@@ -39,12 +44,12 @@ class MAVWPLoader(object):
     def wp_is_loiter(self, i):
         '''return true if waypoint is a loiter waypoint'''
         loiter_cmds = [mavutil.mavlink.MAV_CMD_NAV_LOITER_UNLIM,
-                mavutil.mavlink.MAV_CMD_NAV_LOITER_TURNS,
-                mavutil.mavlink.MAV_CMD_NAV_LOITER_TIME,
-                mavutil.mavlink.MAV_CMD_NAV_LOITER_TO_ALT]
+                       mavutil.mavlink.MAV_CMD_NAV_LOITER_TURNS,
+                       mavutil.mavlink.MAV_CMD_NAV_LOITER_TIME,
+                       mavutil.mavlink.MAV_CMD_NAV_LOITER_TO_ALT]
 
         if (self.wpoints[i].command in loiter_cmds):
-            return True    
+            return True
 
         return False
 
@@ -85,13 +90,21 @@ class MAVWPLoader(object):
             frame = mavutil.mavlink.MAV_FRAME_GLOBAL_TERRAIN_ALT
         else:
             frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
-        p = mavutil.mavlink.MAVLink_mission_item_message(self.target_system,
-                                                         self.target_component,
-                                                         0,
-                                                         frame,
-                                                         mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
-                                                         0, 0, 0, 0, 0, 0,
-                                                         lat, lon, altitude)
+        p = mavutil.mavlink.MAVLink_mission_item_message(
+            self.target_system,
+            self.target_component,
+            0,
+            frame,
+            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            lat,
+            lon,
+            altitude)
         self.add(p)
 
     def set(self, w, idx):
@@ -100,7 +113,9 @@ class MAVWPLoader(object):
         if w.seq == self.count():
             return self.add(w)
         if self.count() <= idx:
-            raise MAVWPError('adding waypoint at idx=%u past end of list (count=%u)' % (idx, self.count()))
+            raise MAVWPError(
+                'adding waypoint at idx=%u past end of list (count=%u)' %
+                (idx, self.count()))
         self.wpoints[idx] = w
         self.last_change = time.time()
 
@@ -118,14 +133,14 @@ class MAVWPLoader(object):
     def _read_waypoints_v100(self, file):
         '''read a version 100 waypoint'''
         cmdmap = {
-            2 : mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
-            3 : mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,
-            4 : mavutil.mavlink.MAV_CMD_NAV_LAND,
+            2: mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
+            3: mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,
+            4: mavutil.mavlink.MAV_CMD_NAV_LAND,
             24: mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
             26: mavutil.mavlink.MAV_CMD_NAV_LAND,
-            25: mavutil.mavlink.MAV_CMD_NAV_WAYPOINT ,
+            25: mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
             27: mavutil.mavlink.MAV_CMD_NAV_LOITER_UNLIM
-            }
+        }
         comment = ''
         for line in file:
             if line.startswith('#'):
@@ -136,7 +151,9 @@ class MAVWPLoader(object):
                 continue
             a = line.split()
             if len(a) != 13:
-                raise MAVWPError("invalid waypoint line with %u values" % len(a))
+                raise MAVWPError(
+                    "invalid waypoint line with %u values" %
+                    len(a))
             if mavutil.mavlink10():
                 fn = mavutil.mavlink.MAVLink_mission_item_message
             else:
@@ -174,7 +191,9 @@ class MAVWPLoader(object):
                 continue
             a = line.split()
             if len(a) != 12:
-                raise MAVWPError("invalid waypoint line with %u values" % len(a))
+                raise MAVWPError(
+                    "invalid waypoint line with %u values" %
+                    len(a))
             if mavutil.mavlink10():
                 fn = mavutil.mavlink.MAVLink_mission_item_message
             else:
@@ -231,8 +250,8 @@ class MAVWPLoader(object):
             else:
                 if explicit_seq and not warned_seq:
                     logging.warn(
-                            'Waypoint file %s: mixes explicit and implicit '
-                            'sequence numbers' % (file,))
+                        'Waypoint file %s: mixes explicit and implicit '
+                        'sequence numbers' % (file,))
                     warned_seq = True
             # The first command has current=True, the rest have current=False.
             if seq > 0:
@@ -241,18 +260,18 @@ class MAVWPLoader(object):
                 current = True
             w = mavutil.mavlink.MAVLink_mission_item_message(
                 self.target_system, self.target_component,
-                   waypoint.seq or seq,
-                   waypoint.frame,
-                   waypoint.command,
-                   waypoint.current or current,
-                   waypoint.autocontinue or defaults.autocontinue,
-                   waypoint.param1 or defaults.param1,
-                   waypoint.param2 or defaults.param2,
-                   waypoint.param3 or defaults.param3,
-                   waypoint.param4 or defaults.param4,
-                   waypoint.x or defaults.x,
-                   waypoint.y or defaults.y,
-                   waypoint.z or defaults.z)
+                waypoint.seq or seq,
+                waypoint.frame,
+                waypoint.command,
+                waypoint.current or current,
+                waypoint.autocontinue or defaults.autocontinue,
+                waypoint.param1 or defaults.param1,
+                waypoint.param2 or defaults.param2,
+                waypoint.param3 or defaults.param3,
+                waypoint.param4 or defaults.param4,
+                waypoint.x or defaults.x,
+                waypoint.y or defaults.y,
+                waypoint.z or defaults.z)
             self.add(w)
 
     def load(self, filename):
@@ -313,14 +332,13 @@ class MAVWPLoader(object):
         '''see if cmd is a MAV_CMD with a latitide/longitude.
         We check if it has Latitude and Longitude params in the right indexes'''
         mav_cmd = mavutil.mavlink.enums['MAV_CMD']
-        if not cmd in mav_cmd:
+        if cmd not in mav_cmd:
             return False
-        if not mav_cmd[cmd].param.get(5,'').startswith('Latitude'):
+        if not mav_cmd[cmd].param.get(5, '').startswith('Latitude'):
             return False
-        if not mav_cmd[cmd].param.get(6,'').startswith('Longitude'):
+        if not mav_cmd[cmd].param.get(6, '').startswith('Longitude'):
             return False
         return True
-
 
     def view_indexes(self, done=None):
         '''return a list waypoint indexes in view order'''
@@ -331,10 +349,10 @@ class MAVWPLoader(object):
 
         # find first point not done yet
         while idx < self.count():
-            if not idx in done:
+            if idx not in done:
                 break
             idx += 1
-            
+
         while idx < self.count():
             w = self.wp(idx)
             if idx in done:
@@ -382,14 +400,20 @@ class MAVWPLoader(object):
                 ret.append(p)
         return ret
 
+
 class MAVRallyError(Exception):
+
     '''MAVLink rally point error class'''
+
     def __init__(self, msg):
         Exception.__init__(self, msg)
         self.message = msg
 
+
 class MAVRallyLoader(object):
+
     '''MAVLink Rally points and Rally Land ponts loader'''
+
     def __init__(self, target_system=0, target_component=0):
         self.rally_points = []
         self.target_system = target_system
@@ -410,20 +434,36 @@ class MAVRallyLoader(object):
             self.rally_points[i].count = self.rally_count()
             self.rally_points[i].idx = i
         self.last_change = time.time()
-            
+
     def append_rally_point(self, p):
         '''add rallypoint to end of list'''
         if (self.rally_count() > 9):
-           print("Can't have more than 10 rally points, not adding.")
-           return
+            print("Can't have more than 10 rally points, not adding.")
+            return
 
         self.rally_points.append(p)
         self.reindex()
 
-    def create_and_append_rally_point(self, lat, lon, alt, break_alt, land_dir, flags):
+    def create_and_append_rally_point(
+            self,
+            lat,
+            lon,
+            alt,
+            break_alt,
+            land_dir,
+            flags):
         '''add a point via latitude/longitude'''
-        p = mavutil.mavlink.MAVLink_rally_point_message(self.target_system, self.target_component,
-                                                        self.rally_count(), 0, lat, lon, alt, break_alt, land_dir, flags)
+        p = mavutil.mavlink.MAVLink_rally_point_message(
+            self.target_system,
+            self.target_component,
+            self.rally_count(),
+            0,
+            lat,
+            lon,
+            alt,
+            break_alt,
+            land_dir,
+            flags)
         self.append_rally_point(p)
 
     def clear(self):
@@ -434,27 +474,27 @@ class MAVRallyLoader(object):
     def remove(self, i):
         '''remove a rally point'''
         if i < 1 or i > self.rally_count():
-            print("Invalid rally point number %u" % i)
-        self.rally_points.pop(i-1)
+            print(("Invalid rally point number %u" % i))
+        self.rally_points.pop(i - 1)
         self.reindex()
 
     def move(self, i, lat, lng, change_time=True):
         '''move a rally point'''
         if i < 1 or i > self.rally_count():
-            print("Invalid rally point number %u" % i)
-        self.rally_points[i-1].lat = int(lat*1e7)
-        self.rally_points[i-1].lng = int(lng*1e7)
+            print(("Invalid rally point number %u" % i))
+        self.rally_points[i - 1].lat = int(lat * 1e7)
+        self.rally_points[i - 1].lng = int(lng * 1e7)
         if change_time:
             self.last_change = time.time()
 
     def set_alt(self, i, alt, break_alt=None, change_time=True):
         '''set rally point altitude(s)'''
         if i < 1 or i > self.rally_count():
-            print("Inavlid rally point number %u" % i)
+            print(("Inavlid rally point number %u" % i))
             return
-        self.rally_points[i-1].alt = int(alt)
-        if (break_alt != None):
-            self.rally_points[i-1].break_alt = break_alt
+        self.rally_points[i - 1].alt = int(alt)
+        if (break_alt is not None):
+            self.rally_points[i - 1].break_alt = break_alt
         if change_time:
             self.last_change = time.time()
 
@@ -474,8 +514,19 @@ class MAVRallyLoader(object):
                 raise MAVRallyError("invalid rally file line: %s" % line)
 
             if (a[0].lower() == "rally"):
-                self.create_and_append_rally_point(float(a[1]) * 1e7, float(a[2]) * 1e7,
-                                                   float(a[3]), float(a[4]), float(a[5]) * 100.0, int(a[6]))
+                self.create_and_append_rally_point(
+                    float(
+                        a[1]) * 1e7,
+                    float(
+                        a[2]) * 1e7,
+                    float(
+                        a[3]),
+                    float(
+                        a[4]),
+                    float(
+                        a[5]) * 100.0,
+                    int(
+                        a[6]))
         f.close()
         return len(self.rally_points)
 
@@ -483,18 +534,32 @@ class MAVRallyLoader(object):
         '''save fence points to a file'''
         f = open(filename, mode='w')
         for p in self.rally_points:
-            f.write("RALLY %f\t%f\t%f\t%f\t%f\t%d\n" % (p.lat * 1e-7, p.lng * 1e-7, p.alt,
-                                                        p.break_alt, p.land_dir, p.flags))
+            f.write(
+                "RALLY %f\t%f\t%f\t%f\t%f\t%d\n" %
+                (p.lat *
+                 1e-7,
+                 p.lng *
+                 1e-7,
+                 p.alt,
+                 p.break_alt,
+                 p.land_dir,
+                 p.flags))
         f.close()
 
+
 class MAVFenceError(Exception):
-        '''MAVLink fence error class'''
-        def __init__(self, msg):
-            Exception.__init__(self, msg)
-            self.message = msg
+
+    '''MAVLink fence error class'''
+
+    def __init__(self, msg):
+        Exception.__init__(self, msg)
+        self.message = msg
+
 
 class MAVFenceLoader(object):
+
     '''MAVLink geo-fence loader'''
+
     def __init__(self, target_system=0, target_component=0):
         self.points = []
         self.target_system = target_system
@@ -526,8 +591,13 @@ class MAVFenceLoader(object):
 
     def add_latlon(self, lat, lon):
         '''add a point via latitude/longitude'''
-        p = mavutil.mavlink.MAVLink_fence_point_message(self.target_system, self.target_component,
-                                                        self.count(), 0, lat, lon)
+        p = mavutil.mavlink.MAVLink_fence_point_message(
+            self.target_system,
+            self.target_component,
+            self.count(),
+            0,
+            lat,
+            lon)
         self.add(p)
 
     def clear(self):
@@ -563,37 +633,37 @@ class MAVFenceLoader(object):
     def move(self, i, lat, lng, change_time=True):
         '''move a fence point'''
         if i < 0 or i >= self.count():
-            print("Invalid fence point number %u" % i)
+            print(("Invalid fence point number %u" % i))
         self.points[i].lat = lat
         self.points[i].lng = lng
         # ensure we close the polygon
         if i == 1:
-                self.points[self.count()-1].lat = lat
-                self.points[self.count()-1].lng = lng
+            self.points[self.count() - 1].lat = lat
+            self.points[self.count() - 1].lng = lng
         if i == self.count() - 1:
-                self.points[1].lat = lat
-                self.points[1].lng = lng
+            self.points[1].lat = lat
+            self.points[1].lng = lng
         if change_time:
             self.last_change = time.time()
 
     def remove(self, i, change_time=True):
         '''remove a fence point'''
         if i < 0 or i >= self.count():
-            print("Invalid fence point number %u" % i)
+            print(("Invalid fence point number %u" % i))
         self.points.pop(i)
-         # ensure we close the polygon
+        # ensure we close the polygon
         if i == 1:
-                self.points[self.count()-1].lat = self.points[1].lat
-                self.points[self.count()-1].lng = self.points[1].lng
+            self.points[self.count() - 1].lat = self.points[1].lat
+            self.points[self.count() - 1].lng = self.points[1].lng
         if i == self.count():
-                self.points[1].lat = self.points[self.count()-1].lat
-                self.points[1].lng = self.points[self.count()-1].lng
+            self.points[1].lat = self.points[self.count() - 1].lat
+            self.points[1].lng = self.points[self.count() - 1].lng
         if change_time:
             self.last_change = time.time()
 
     def polygon(self):
-            '''return a polygon for the fence'''
-            points = []
-            for fp in self.points[1:]:
-                    points.append((fp.lat, fp.lng))
-            return points
+        '''return a polygon for the fence'''
+        points = []
+        for fp in self.points[1:]:
+            points.append((fp.lat, fp.lng))
+        return points

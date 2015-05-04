@@ -4,7 +4,10 @@
 check bandwidth of link
 '''
 
-import sys, struct, time, os
+import sys
+import struct
+import time
+import os
 
 from pymavlink import mavutil
 
@@ -12,7 +15,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 
 parser.add_argument("--baudrate", type=int,
-                  help="master port baud rate", default=115200)
+                    help="master port baud rate", default=115200)
 parser.add_argument("--device", required=True, help="serial device")
 args = parser.parse_args()
 
@@ -34,18 +37,19 @@ while True:
     master.mav.vfr_hud_send(1, 2, 3, 4, 5, 6)
     while master.port.inWaiting() > 0:
         m = master.recv_msg()
-        if m == None: break
+        if m is None:
+            break
         if m.get_type() not in counts:
             counts[m.get_type()] = 0
         counts[m.get_type()] += 1
     t2 = time.time()
     if t2 - t1 > 1.0:
-        print("%u sent, %u received, %u errors bwin=%.1f kB/s bwout=%.1f kB/s" % (
+        print(("%u sent, %u received, %u errors bwin=%.1f kB/s bwout=%.1f kB/s" % (
             master.mav.total_packets_sent,
             master.mav.total_packets_received,
             master.mav.total_receive_errors,
-            0.001*(master.mav.total_bytes_received-bytes_recv)/(t2-t1),
-            0.001*(master.mav.total_bytes_sent-bytes_sent)/(t2-t1)))
+            0.001 * (master.mav.total_bytes_received - bytes_recv) / (t2 - t1),
+            0.001 * (master.mav.total_bytes_sent - bytes_sent) / (t2 - t1))))
         bytes_sent = master.mav.total_bytes_sent
         bytes_recv = master.mav.total_bytes_received
         t1 = t2

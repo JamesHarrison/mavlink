@@ -4,12 +4,19 @@
 work out total flight time for a mavlink log
 '''
 
-import sys, time, os, glob
+import sys
+import time
+import os
+import glob
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description=__doc__)
 parser.add_argument("--condition", default=None, help="condition for packets")
-parser.add_argument("--groundspeed", type=float, default=3.0, help="groundspeed threshold")
+parser.add_argument(
+    "--groundspeed",
+    type=float,
+    default=3.0,
+    help="groundspeed threshold")
 parser.add_argument("logs", metavar="LOG", nargs="+")
 
 args = parser.parse_args()
@@ -20,7 +27,7 @@ from pymavlink.mavextra import distance_two
 
 def flight_time(logfile):
     '''work out flight time for a log file'''
-    print("Processing log %s" % filename)
+    print(("Processing log %s" % filename))
     mlog = mavutil.mavlink_connection(filename)
 
     in_air = False
@@ -31,15 +38,22 @@ def flight_time(logfile):
     last_msg = None
 
     while True:
-        m = mlog.recv_match(type=['GPS','GPS_RAW_INT'], condition=args.condition)
+        m = mlog.recv_match(
+            type=[
+                'GPS',
+                'GPS_RAW_INT'],
+            condition=args.condition)
         if m is None:
             if in_air:
                 total_time += time.mktime(t) - start_time
             if total_time > 0:
-                print("Flight time : %u:%02u" % (int(total_time)/60, int(total_time)%60))
+                print(("Flight time : %u:%02u" %
+                       (int(total_time) /
+                        60, int(total_time) %
+                           60)))
             return (total_time, total_dist)
         if m.get_type() == 'GPS_RAW_INT':
-            groundspeed = m.vel*0.01
+            groundspeed = m.vel * 0.01
             status = m.fix_type
         else:
             groundspeed = m.Spd
@@ -48,12 +62,13 @@ def flight_time(logfile):
             continue
         t = time.localtime(m._timestamp)
         if groundspeed > args.groundspeed and not in_air:
-            print("In air at %s (percent %.0f%% groundspeed %.1f)" % (time.asctime(t), mlog.percent, groundspeed))
+            print(("In air at %s (percent %.0f%% groundspeed %.1f)" %
+                   (time.asctime(t), mlog.percent, groundspeed)))
             in_air = True
             start_time = time.mktime(t)
         elif groundspeed < args.groundspeed and in_air:
-            print("On ground at %s (percent %.1f%% groundspeed %.1f  time=%.1f seconds)" % (
-                time.asctime(t), mlog.percent, groundspeed, time.mktime(t) - start_time))
+            print(("On ground at %s (percent %.1f%% groundspeed %.1f  time=%.1f seconds)" % (
+                time.asctime(t), mlog.percent, groundspeed, time.mktime(t) - start_time)))
             in_air = False
             total_time += time.mktime(t) - start_time
 
@@ -70,5 +85,8 @@ for filename in args.logs:
         total_time += ftime
         total_dist += fdist
 
-print("Total time in air: %u:%02u" % (int(total_time)/60, int(total_time)%60))
-print("Total distance trevelled: %.1f meters" % total_dist)
+print(("Total time in air: %u:%02u" %
+       (int(total_time) /
+        60, int(total_time) %
+        60)))
+print(("Total distance trevelled: %.1f meters" % total_dist))

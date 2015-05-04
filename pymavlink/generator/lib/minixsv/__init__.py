@@ -45,24 +45,23 @@
 
 # supported XML interfaces
 
-XMLIF_MINIDOM     = "XMLIF_MINIDOM"
-XMLIF_4DOM        = "XMLIF_4DOM"
+XMLIF_MINIDOM = "XMLIF_MINIDOM"
+XMLIF_4DOM = "XMLIF_4DOM"
 XMLIF_ELEMENTTREE = "XMLIF_ELEMENTTREE"
-
 
 
 # namespace definitions
 
-EMPTY_PREFIX    = None
+EMPTY_PREFIX = None
 
 EMPTY_NAMESPACE = None
-XML_NAMESPACE   = "http://www.w3.org/XML/1998/namespace"
+XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace"
 XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
-XSD_NAMESPACE   = "http://www.w3.org/2001/XMLSchema"
-XSI_NAMESPACE   = "http://www.w3.org/2001/XMLSchema-instance"
+XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
+XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
 
-# definition of minixsv path 
+# definition of minixsv path
 
 import os
 MINIXSV_DIR = os.path.dirname(__file__)
@@ -70,6 +69,5 @@ MINIXSV_DIR = os.path.dirname(__file__)
 
 # error handling definitions
 
-from xsvalErrorHandler import IGNORE_WARNINGS, PRINT_WARNINGS, STOP_ON_WARNINGS
-from xsvalErrorHandler import XsvalError
-
+from .xsvalErrorHandler import IGNORE_WARNINGS, PRINT_WARNINGS, STOP_ON_WARNINGS
+from .xsvalErrorHandler import XsvalError
